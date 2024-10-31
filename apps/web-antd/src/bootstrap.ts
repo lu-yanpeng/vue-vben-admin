@@ -5,8 +5,11 @@ import { initStores } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/antd';
 
+import Vueform from '@vueform/vueform';
+
 import { setupI18n } from '#/locales';
 
+import vueformConfig from './../vueform.config';
 import { initComponentAdapter } from './adapter/component';
 import App from './app.vue';
 import { router } from './router';
@@ -28,6 +31,7 @@ async function bootstrap(namespace: string) {
 
   // 配置路由及路由守卫
   app.use(router);
+  app.use(Vueform, vueformConfig);
 
   app.mount('#app');
 }

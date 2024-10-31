@@ -1,4 +1,6 @@
 import { defineConfig } from '@vben/vite-config';
+import Components from 'unplugin-vue-components/vite';
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
 
 export default defineConfig(async () => {
   return {
@@ -15,6 +17,15 @@ export default defineConfig(async () => {
           },
         },
       },
+      plugins: [
+        Components({
+          resolvers: [
+            AntDesignVueResolver({
+              importStyle: false,
+            }),
+          ],
+        }),
+      ],
     },
   };
 });

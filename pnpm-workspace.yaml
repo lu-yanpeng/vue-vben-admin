@@ -58,6 +58,7 @@ catalog:
   '@vue/test-utils': ^2.4.6
   '@vueuse/core': ^11.1.0
   '@vueuse/integrations': ^11.1.0
+  '@vueform/vueform': ^1.11.0
   ant-design-vue: ^4.2.5
   archiver: ^7.0.1
   autoprefixer: ^10.4.20

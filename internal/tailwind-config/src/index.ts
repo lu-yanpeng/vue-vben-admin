@@ -2,14 +2,14 @@ import type { Config } from 'tailwindcss';
 
 import path from 'node:path';
 
-import { getPackagesSync } from '@vben/node-utils';
+import { findMonorepoRoot, getPackagesSync } from '@vben/node-utils';
 
 import { addDynamicIconSelectors } from '@iconify/tailwind';
 import typographyPlugin from '@tailwindcss/typography';
+import * as vueformTailwind from '@vueform/vueform/tailwind.js';
 import animate from 'tailwindcss-animate';
 
 import { enterAnimationPlugin } from './plugins/entry';
-
 // import defaultTheme from 'tailwindcss/defaultTheme';
 
 const { packages } = getPackagesSync();
@@ -122,6 +122,11 @@ export default {
     ...tailwindPackages.map((item) =>
       path.join(item, 'src/**/*.{vue,js,ts,jsx,tsx,svelte,astro,html}'),
     ),
+    './vueform.config.ts',
+    path.join(
+      findMonorepoRoot(),
+      'node_modules/.pnpm/@vueform+vueform@*/node_modules/@vueform/vueform/themes/tailwind/**/*.{vue,js}',
+    ),
   ],
   darkMode: 'selector',
   plugins: [
@@ -129,6 +134,7 @@ export default {
     typographyPlugin,
     addDynamicIconSelectors(),
     enterAnimationPlugin,
+    vueformTailwind,
   ],
   prefix: '',
   safelist: ['dark'],
