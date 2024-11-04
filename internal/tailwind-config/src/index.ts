@@ -2,17 +2,19 @@ import type { Config } from 'tailwindcss';
 
 import path from 'node:path';
 
-import { findMonorepoRoot, getPackagesSync } from '@vben/node-utils';
+import { findMonorepoRoot } from '@vben/node-utils';
 
 import { addDynamicIconSelectors } from '@iconify/tailwind';
+import { getPackagesSync } from '@manypkg/get-packages';
 import typographyPlugin from '@tailwindcss/typography';
 import * as vueformTailwind from '@vueform/vueform/tailwind.js';
 import animate from 'tailwindcss-animate';
 
 import { enterAnimationPlugin } from './plugins/entry';
+
 // import defaultTheme from 'tailwindcss/defaultTheme';
 
-const { packages } = getPackagesSync();
+const { packages } = getPackagesSync(process.cwd());
 
 const tailwindPackages: string[] = [];
 
