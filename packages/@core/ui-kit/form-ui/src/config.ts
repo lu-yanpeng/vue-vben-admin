@@ -64,8 +64,10 @@ export function setupVbenForm<
     | Record<BaseFormComponentType, string>
     | undefined;
 
+  // 获取全局表单控件组件，input，select之类的
   const components = globalShareState.getComponents();
 
+  // 修改字段的属性，input的v-model:modelValue 改成v-model:value
   for (const component of Object.keys(components)) {
     const key = component as BaseFormComponentType;
     COMPONENT_MAP[key] = components[component as never];

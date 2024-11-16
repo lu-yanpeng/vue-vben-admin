@@ -9,7 +9,7 @@ import type {
 } from '../types';
 
 import { computed } from 'vue';
-
+// 从vee-validate导出的表单组件，方便做验证
 import { Form } from '@vben-core/shadcn-ui';
 import { cn, isString, mergeWithArrayOverride } from '@vben-core/shared/utils';
 

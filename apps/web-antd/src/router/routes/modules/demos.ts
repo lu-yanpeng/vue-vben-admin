@@ -14,14 +14,44 @@ const routes: RouteRecordRaw[] = [
     },
     name: 'Demos',
     path: '/demos',
+    redirect: { name: 'demoTables' },
     children: [
       {
         meta: {
-          title: $t('demos.antd'),
+          title: '表格',
         },
-        name: 'AntDesignDemos',
-        path: '/demos/ant-design',
-        component: () => import('#/views/demos/antd/index.vue'),
+        name: 'demoTables',
+        path: 'tables',
+        redirect: { name: 'basicTable' },
+        children: [
+          {
+            meta: {
+              title: '基础表格',
+            },
+            name: 'basicTable',
+            path: 'basic-table',
+            component: () =>
+              import('#/views/demos/table/basic-table/index.vue'),
+          },
+        ],
+      },
+      {
+        meta: {
+          title: '表单',
+        },
+        name: 'demoForm',
+        path: 'forms',
+        redirect: { name: 'basicForm' },
+        children: [
+          {
+            meta: {
+              title: '基础表单',
+            },
+            name: 'basicForm',
+            path: 'basic-form',
+            component: () => import('#/views/demos/form/basic-form/index.vue'),
+          },
+        ],
       },
     ],
   },
