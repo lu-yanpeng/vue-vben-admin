@@ -5,6 +5,7 @@ import path from 'node:path';
 import { addDynamicIconSelectors } from '@iconify/tailwind';
 import { getPackagesSync } from '@manypkg/get-packages';
 import typographyPlugin from '@tailwindcss/typography';
+import daisyui from 'daisyui';
 import animate from 'tailwindcss-animate';
 
 import { enterAnimationPlugin } from './plugins/entry';
@@ -122,9 +123,13 @@ export default {
       path.join(item, 'src/**/*.{vue,js,ts,jsx,tsx,svelte,astro,html}'),
     ),
   ],
-  darkMode: 'selector',
+  daisyui: {
+    prefix: 'd-',
+  },
+  darkMode: ['selector'],
   plugins: [
     animate,
+    daisyui,
     typographyPlugin,
     addDynamicIconSelectors(),
     enterAnimationPlugin,
