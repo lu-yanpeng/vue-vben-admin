@@ -5,6 +5,7 @@ import path from 'node:path';
 import { addDynamicIconSelectors } from '@iconify/tailwind';
 import { getPackagesSync } from '@manypkg/get-packages';
 import typographyPlugin from '@tailwindcss/typography';
+import daisyui from 'daisyui';
 import animate from 'tailwindcss-animate';
 
 import { enterAnimationPlugin } from './plugins/entry';
@@ -125,6 +126,7 @@ export default {
   darkMode: 'selector',
   plugins: [
     animate,
+    daisyui,
     typographyPlugin,
     addDynamicIconSelectors(),
     enterAnimationPlugin,
