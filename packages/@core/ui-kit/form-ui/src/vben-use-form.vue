@@ -6,7 +6,11 @@ import type { ExtendedFormApi, VbenFormProps } from './types';
 import { useForwardPriorityValues } from '@vben-core/composables';
 // import { isFunction } from '@vben-core/shared/utils';
 
-import { useTemplateRef } from 'vue';
+import { nextTick, onMounted, useTemplateRef, watch } from 'vue';
+
+import { cloneDeep } from '@vben-core/shared/utils';
+
+import { useDebounceFn } from '@vueuse/core';
 
 import FormActions from './components/form-actions.vue';
 import {
@@ -40,6 +44,13 @@ const handleUpdateCollapsed = (value: boolean) => {
 };
 
 function handleKeyDownEnter(event: KeyboardEvent) {
+  if (
+    !state.value.submitOnEnter ||
+    !formActionsRef.value ||
+    !formActionsRef.value.handleSubmit
+  ) {
+    return;
+  }
   // 如果是 textarea 不阻止默认行为，否则会导致无法换行。
   // 跳过 textarea 的回车提交处理
   if (event.target instanceof HTMLTextAreaElement) {
@@ -47,11 +58,19 @@ function handleKeyDownEnter(event: KeyboardEvent) {
   }
   event.preventDefault();
 
-  if (!state.value.submitOnEnter || !formActionsRef.value) {
-    return;
-  }
   formActionsRef.value?.handleSubmit?.();
 }
+
+const handleValuesChangeDebounced = useDebounceFn((newVal) => {
+  forward.value.handleValuesChange?.(cloneDeep(newVal));
+  state.value.submitOnChange && formActionsRef.value?.handleSubmit?.();
+}, 300);
+
+onMounted(async () => {
+  // 只在挂载后开始监听，form.values会有一个初始化的过程
+  await nextTick();
+  watch(() => form.values, handleValuesChangeDebounced, { deep: true });
+});
 </script>
 
 <template>

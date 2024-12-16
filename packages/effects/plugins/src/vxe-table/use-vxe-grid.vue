@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import type { VbenFormProps } from '@vben-core/form-ui';
 import type {
+  VxeGridDefines,
   VxeGridInstance,
+  VxeGridListeners,
+  VxeGridPropTypes,
   VxeGridProps as VxeTableGridProps,
 } from 'vxe-table';
 
@@ -11,6 +14,7 @@ import {
   computed,
   nextTick,
   onMounted,
+  onUnmounted,
   toRaw,
   useSlots,
   useTemplateRef,
@@ -31,7 +35,7 @@ import { useTableForm } from './init';
 
 import 'vxe-table/styles/cssvar.scss';
 import 'vxe-pc-ui/styles/cssvar.scss';
-import './theme.css';
+import './style.css';
 
 interface Props extends VxeGridProps {
   api: ExtendedVxeGridApi;
@@ -40,6 +44,9 @@ interface Props extends VxeGridProps {
 const props = withDefaults(defineProps<Props>(), {});
 
 const FORM_SLOT_PREFIX = 'form-';
+
+const TOOLBAR_ACTIONS = 'toolbar-actions';
+const TOOLBAR_TOOLS = 'toolbar-tools';
 
 const gridRef = useTemplateRef<VxeGridInstance>('gridRef');
 
@@ -53,6 +60,7 @@ const {
   formOptions,
   tableTitle,
   tableTitleHelp,
+  showSearchForm,
 } = usePriorityValues(props, state);
 
 const { isMobile } = usePreferences();
@@ -62,11 +70,13 @@ const slots = useSlots();
 const [Form, formApi] = useTableForm({
   handleSubmit: async () => {
     const formValues = formApi.form.values;
+    formApi.setLatestSubmissionValues(toRaw(formValues));
     props.api.reload(formValues);
   },
   handleReset: async () => {
     await formApi.resetForm();
     const formValues = formApi.form.values;
+    formApi.setLatestSubmissionValues(formValues);
     props.api.reload(formValues);
   },
   commonConfig: {
@@ -87,30 +97,47 @@ const showTableTitle = computed(() => {
 
 const showToolbar = computed(() => {
   return (
-    !!slots['toolbar-actions']?.() ||
-    !!slots['toolbar-tools']?.() ||
+    !!slots[TOOLBAR_ACTIONS]?.() ||
+    !!slots[TOOLBAR_TOOLS]?.() ||
     showTableTitle.value
   );
 });
 
 const toolbarOptions = computed(() => {
-  const slotActions = slots['toolbar-actions']?.();
-  const slotTools = slots['toolbar-tools']?.();
+  const slotActions = slots[TOOLBAR_ACTIONS]?.();
+  const slotTools = slots[TOOLBAR_TOOLS]?.();
+
+  const toolbarConfig: VxeGridPropTypes.ToolbarConfig = {
+    tools:
+      gridOptions.value?.toolbarConfig?.search && !!formOptions.value
+        ? [
+            {
+              code: 'search',
+              icon: 'vxe-icon--search',
+              circle: true,
+              status: showSearchForm.value ? 'primary' : undefined,
+              title: $t('common.search'),
+            },
+          ]
+        : [],
+  };
+
   if (!showToolbar.value) {
-    return {};
+    return { toolbarConfig };
   }
+
+  // if (gridOptions.value?.toolbarConfig?.search) {
+  // }
   // 强制使用固定的toolbar配置，不允许用户自定义
   // 减少配置的复杂度，以及后续维护的成本
-  return {
-    toolbarConfig: {
-      slots: {
-        ...(slotActions || showTableTitle.value
-          ? { buttons: 'toolbar-actions' }
-          : {}),
-        ...(slotTools ? { tools: 'toolbar-tools' } : {}),
-      },
-    },
+  toolbarConfig.slots = {
+    ...(slotActions || showTableTitle.value
+      ? { buttons: TOOLBAR_ACTIONS }
+      : {}),
+    ...(slotTools ? { tools: TOOLBAR_TOOLS } : {}),
   };
+
+  return { toolbarConfig };
 });
 
 const options = computed(() => {
@@ -122,11 +149,6 @@ const options = computed(() => {
       toolbarOptions.value,
       toRaw(gridOptions.value),
       globalGridConfig,
-      {
-        // toolbarConfig: {
-        //   tools: [],
-        // },
-      } as VxeTableGridProps,
     ),
   );
 
@@ -135,10 +157,6 @@ const options = computed(() => {
     mergedOptions.proxyConfig.enabled = !!ajax;
     // 不自动加载数据, 由组件控制
     mergedOptions.proxyConfig.autoLoad = false;
-  }
-
-  if (!showToolbar.value && mergedOptions.toolbarConfig) {
-    mergedOptions.toolbarConfig.enabled = false;
   }
 
   if (mergedOptions.pagerConfig) {
@@ -175,9 +193,19 @@ const options = computed(() => {
   return mergedOptions;
 });
 
+function onToolbarToolClick(event: VxeGridDefines.ToolbarToolClickEventParams) {
+  if (event.code === 'search') {
+    props.api?.toggleSearchForm?.();
+  }
+  (
+    gridEvents.value?.toolbarToolClick as VxeGridListeners['toolbarToolClick']
+  )?.(event);
+}
+
 const events = computed(() => {
   return {
     ...gridEvents.value,
+    toolbarToolClick: onToolbarToolClick,
   };
 });
 
@@ -185,7 +213,7 @@ const delegatedSlots = computed(() => {
   const resultSlots: string[] = [];
 
   for (const key of Object.keys(slots)) {
-    if (!['empty', 'form', 'loading', 'toolbar-actions'].includes(key)) {
+    if (!['empty', 'form', 'loading', TOOLBAR_ACTIONS].includes(key)) {
       resultSlots.push(key);
     }
   }
@@ -215,7 +243,8 @@ async function init() {
   const autoLoad = defaultGridOptions.proxyConfig?.autoLoad;
   const enableProxyConfig = options.value.proxyConfig?.enabled;
   if (enableProxyConfig && autoLoad) {
-    props.api.reload(formApi.form?.values ?? {});
+    props.api.grid.commitProxy?.('_init', formApi.form?.values ?? {});
+    // props.api.reload(formApi.form?.values ?? {});
   }
 
   // form 由 vben-form代替，所以不适配formConfig，这里给出警告
@@ -229,7 +258,9 @@ async function init() {
   }
   props.api?.setState?.({ gridOptions: defaultGridOptions });
   // form 由 vben-form 代替，所以需要保证query相关事件可以拿到参数
-  extendProxyOptions(props.api, defaultGridOptions, () => formApi.form.values);
+  extendProxyOptions(props.api, defaultGridOptions, () =>
+    formApi.getLatestSubmissionValues(),
+  );
 }
 
 // formOptions支持响应式
@@ -257,6 +288,11 @@ onMounted(() => {
   props.api?.mount?.(gridRef.value, formApi);
   init();
 });
+
+onUnmounted(() => {
+  formApi?.unmount?.();
+  props.api?.unmount?.();
+});
 </script>
 
 <template>
@@ -265,7 +301,7 @@ onMounted(() => {
       ref="gridRef"
       :class="
         cn(
-          'p-2',
+          'p-2 pt-0',
           {
             'pt-0': showToolbar && !formOptions,
           },
@@ -299,7 +335,11 @@ onMounted(() => {
 
       <!-- form表单 -->
       <template #form>
-        <div v-if="formOptions" class="relative rounded py-3 pb-4">
+        <div
+          v-if="formOptions"
+          v-show="showSearchForm !== false"
+          class="relative rounded py-3 pb-4"
+        >
           <slot name="form">
             <Form>
               <template

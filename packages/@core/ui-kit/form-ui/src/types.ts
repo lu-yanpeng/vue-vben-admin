@@ -1,4 +1,5 @@
 import type { VbenButtonProps } from '@vben-core/shadcn-ui';
+import type { ClassType } from '@vben-core/typings';
 import type { FieldOptions, FormContext, GenericObject } from 'vee-validate';
 import type { ZodTypeAny } from 'zod';
 
@@ -150,9 +151,14 @@ export interface FormCommonConfig {
   disabled?: boolean;
   /**
    * 是否禁用所有表单项的change事件监听
-   * @default false
+   * @default true
    */
   disabledOnChangeListener?: boolean;
+  /**
+   * 是否禁用所有表单项的input事件监听
+   * @default true
+   */
+  disabledOnInputListener?: boolean;
   /**
    * 所有表单项的空状态值,默认都是undefined，naive-ui的空状态值是null
    */
@@ -204,6 +210,12 @@ export type HandleSubmitFn = (
 export type HandleResetFn = (
   values: Record<string, any>,
 ) => Promise<void> | void;
+
+export type FieldMappingTime = [
+  string,
+  [string, string],
+  ([string, string] | string)?,
+][];
 
 export interface FormSchema<
   T extends BaseFormComponentType = BaseFormComponentType,
@@ -301,9 +313,17 @@ export interface VbenFormProps<
     'componentBindEventMap' | 'componentMap' | 'form'
   > {
   /**
+   * 操作按钮是否反转（提交按钮前置）
+   */
+  actionButtonsReverse?: boolean;
+  /**
    * 表单操作区域class
    */
-  actionWrapperClass?: any;
+  actionWrapperClass?: ClassType;
+  /**
+   * 表单字段映射成时间格式
+   */
+  fieldMappingTime?: FieldMappingTime;
   /**
    * 表单重置回调
    */
@@ -332,6 +352,12 @@ export interface VbenFormProps<
   submitButtonOptions?: ActionButtonOptions;
 
   /**
+   * 是否在字段值改变时提交表单
+   * @default false
+   */
+  submitOnChange?: boolean;
+
+  /**
    * 是否在回车时提交表单
    * @default false
    */
@@ -350,6 +376,7 @@ export interface VbenFormAdapterOptions<
   config?: {
     baseModelPropName?: string;
     disabledOnChangeListener?: boolean;
+    disabledOnInputListener?: boolean;
     emptyStateValue?: null | undefined;
     modelPropNameMap?: Partial<Record<T, string>>;
   };
