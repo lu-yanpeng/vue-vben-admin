@@ -1,32 +1,76 @@
 <script setup lang="ts">
-import DaisyuiWrap from '#/components/daisui-wrap.vue';
+import type { RouteMenuItem } from '#/components/menu/types';
+
+import { ref, useTemplateRef } from 'vue';
+
+import Menu from '#/components/menu/index.vue';
+
+const menuData: RouteMenuItem[] = [
+  { path: '/vueform-1', name: 'vueForm1', meta: { title: '测试数据·1111' } },
+  { path: '/list-el', name: 'listEl', meta: { title: '列表字段', order: '0' } },
+  { path: '/simple-table', name: 'simpleTable', meta: { title: '简单表格' } },
+  { path: '/menu', name: 'menu', meta: { title: '菜单', order: 1 } },
+  {
+    component: 'BasicLayout',
+    meta: { order: -1, title: '父级菜单' },
+    name: 'Dashboard',
+    path: '/',
+    redirect: '/analytics',
+    children: [
+      {
+        name: 'Analytics',
+        path: '/analytics',
+        component: '/dashboard/analytics/index',
+        meta: { affixTab: true, title: '标题一' },
+      },
+      {
+        name: 'Workspace',
+        path: '/workspace',
+        component: '/dashboard/workspace/index',
+        meta: { title: '标题二' },
+        children: [{ path: '/', name: 'home', meta: { title: '首页' } }],
+      },
+    ],
+  },
+  { path: '/', name: 'home', meta: { title: '首页1111', order: '10' } },
+] as RouteMenuItem[];
+const menuRef = useTemplateRef('menuRef');
+const unfold = (open: boolean) => {
+  if (menuRef.value) {
+    menuRef.value.openSubmenu(open);
+  }
+};
+
+const dragSort = ref(false);
+const restore = () => {
+  if (menuRef.value) {
+    menuRef.value.restore();
+  }
+};
+
+const route = ref({});
+const onSelect = (_route: RouteMenuItem) => {
+  route.value = _route;
+};
 </script>
 
 <template>
-  <div>
-    <DaisyuiWrap>
-      <ul class="d-menu bg-base-200 d-rounded-box w-56">
-        <li><a>Item 1</a></li>
-        <li>
-          <details open>
-            <summary>Parent</summary>
-            <ul>
-              <li><a>Submenu 1</a></li>
-              <li><a>Submenu 2</a></li>
-              <li>
-                <details open>
-                  <summary>Parent</summary>
-                  <ul>
-                    <li><a>Submenu 1</a></li>
-                    <li><a>Submenu 2</a></li>
-                  </ul>
-                </details>
-              </li>
-            </ul>
-          </details>
-        </li>
-        <li><a>Item 3</a></li>
-      </ul>
-    </DaisyuiWrap>
+  <div class="grid grid-cols-2">
+    <div>
+      <button class="d-btn" @click="unfold(true)">展开</button>
+      <button class="d-btn" @click="unfold(false)">收起</button>
+      <button class="d-btn" @click="dragSort = !dragSort">排序</button>
+      <button class="d-btn" @click="restore">重置</button>
+      <br /><br />
+
+      <Menu ref="menuRef" :drag-sort :menus="menuData" @select="onSelect" />
+    </div>
+
+    <div class="d-card bg-base-100 shadow-xl">
+      <div class="d-card-body">
+        <div class="d-card-title">已选择的菜单项</div>
+        <pre>{{ route }}</pre>
+      </div>
+    </div>
   </div>
 </template>

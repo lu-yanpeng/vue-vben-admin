@@ -10,6 +10,8 @@ declare module 'vue' {
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     DaisuiWrap: typeof import('./src/components/daisui-wrap.vue')['default']
+    Menu: typeof import('./src/components/menu/index.vue')['default']
+    MenuItem: typeof import('./src/components/menu/menu-item.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
