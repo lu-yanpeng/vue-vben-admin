@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { RouteMenuItem } from '#/components/menu/types';
+import { requestClient } from '#/api/request';
+import { refreshTokenApi } from '#/api/core/auth'
 
 import { ref, useTemplateRef } from 'vue';
 
@@ -52,6 +54,29 @@ const route = ref({});
 const onSelect = (_route: RouteMenuItem) => {
   route.value = _route;
 };
+
+const onSort = () => {
+  dragSort.value = !dragSort.value;
+  if (!dragSort.value) {
+    if (menuRef.value) {
+      const menuData = menuRef.value.menuData();
+      menuData.forEach((menu, index) => {
+        menu.meta.order = index * 10
+      })
+      console.log('排序后', menuData)
+    }
+  }
+}
+
+const onTest = async () => {
+  const response = await requestClient.get('/permission/policy')
+  console.log('请求结果', response)
+}
+
+const refresh = async () => {
+  const response = await refreshTokenApi()
+  console.log('刷新token', response.data)
+}
 </script>
 
 <template>
@@ -59,8 +84,10 @@ const onSelect = (_route: RouteMenuItem) => {
     <div>
       <button class="d-btn" @click="unfold(true)">展开</button>
       <button class="d-btn" @click="unfold(false)">收起</button>
-      <button class="d-btn" @click="dragSort = !dragSort">排序</button>
+      <button class="d-btn" @click="onSort">排序</button>
       <button class="d-btn" @click="restore">重置</button>
+      <button class="d-btn" @click="onTest">接口测试</button>
+      <button class="d-btn" @click="refresh">刷新token</button>
       <br /><br />
 
       <Menu ref="menuRef" :drag-sort :menus="menuData" @select="onSelect" />

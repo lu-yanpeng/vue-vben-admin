@@ -146,6 +146,7 @@ defineExpose({
   restore: sync,
   // 打开或关闭所有子菜单
   openSubmenu: openAllMenu,
+  menuData: () => cloneDeep(clonedMenus.value)
 });
 </script>
 

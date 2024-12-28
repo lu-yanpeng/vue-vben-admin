@@ -1,4 +1,5 @@
-import { baseRequestClient, requestClient } from '#/api/request';
+import { requestClient } from '#/api/request';
+import { useAccessStore } from '@vben/stores';
 
 export namespace AuthApi {
   /** 登录接口参数 */
@@ -22,14 +23,16 @@ export namespace AuthApi {
 /**
  * 登录
  */
-export async function loginApi(data: AuthApi.LoginParams): Promise<AuthApi.LoginResult> {
+export async function loginApi(
+  data: AuthApi.LoginParams,
+): Promise<AuthApi.LoginResult> {
   const response = await requestClient.post<{
     access_token: string;
     refresh_token: string;
   }>('/auth/login', data, {
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
   });
 
   return {
@@ -41,10 +44,23 @@ export async function loginApi(data: AuthApi.LoginParams): Promise<AuthApi.Login
 /**
  * 刷新accessToken
  */
-export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
+export async function refreshTokenApi(): Promise<AuthApi.RefreshTokenResult> {
+  const accessStore = useAccessStore();
+  const { access_token } = await requestClient.post<{
+    access_token: string;
+  }>(
+    '/auth/refresh_token',
+    {
+      refresh_token: accessStore.refreshToken,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  return { data: access_token, status: 200 };
 }
 
 /**
