@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RouteMenuItem } from '#/components/menu/types';
+import type { RouteMenuItem } from '#/types/menu';
 import { requestClient } from '#/api/request';
 import { refreshTokenApi } from '#/api/core/auth'
 

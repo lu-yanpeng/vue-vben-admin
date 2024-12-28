@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RouteMenuItem } from './types';
+import type { RouteMenuItem } from '#/types/menu';
 
 import { ref, useTemplateRef, watch } from 'vue';
 import { type DraggableEvent, useDraggable } from 'vue-draggable-plus';
@@ -8,7 +8,7 @@ import { cloneDeep } from '@vben/utils';
 
 import { useCloned } from '@vueuse/core';
 
-import DaisyuiWrap from '#/components/daisui-wrap.vue';
+import DaisyuiWrap from '#/components/daisyui-wrap.vue';
 
 import MenuItem from './menu-item.vue';
 
@@ -146,7 +146,7 @@ defineExpose({
   restore: sync,
   // 打开或关闭所有子菜单
   openSubmenu: openAllMenu,
-  menuData: () => cloneDeep(clonedMenus.value)
+  menuData: () => cloneDeep(clonedMenus.value),
 });
 </script>
 

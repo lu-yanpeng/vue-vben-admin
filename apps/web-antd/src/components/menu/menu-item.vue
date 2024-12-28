@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RouteMenuItem } from './types';
+import type { RouteMenuItem } from '#/types/menu';
 
 import { computed, onMounted, useTemplateRef } from 'vue';
 
@@ -147,7 +147,7 @@ const menuTitleStyle = computed(() => {
       <span>{{ menu.meta.title }}</span>
       <button
         ref="swapBtnRef"
-        class="d-btn d-btn-square d-btn-sm d-swap h-5"
+        class="d-btn d-btn-outline d-btn-square d-btn-sm d-swap h-5"
         @click="unfold"
       >
         <!-- 向下箭头 -->
