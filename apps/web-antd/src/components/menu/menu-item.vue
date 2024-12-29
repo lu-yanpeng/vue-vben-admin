@@ -2,6 +2,7 @@
 import type { RouteMenuItem } from '#/types/menu';
 
 import { computed, onMounted, useTemplateRef } from 'vue';
+import { IconifyIcon } from '@vben/icons';
 
 defineOptions({ name: 'MenuItem' });
 
@@ -144,7 +145,10 @@ const menuTitleStyle = computed(() => {
           fill-rule="evenodd"
         />
       </svg>
-      <span>{{ menu.meta.title }}</span>
+      <div class="flex items-center gap-2">
+        <iconify-icon :icon="menu?.meta?.icon" class="h-5 w-5" />
+        <span>{{ menu.meta.title }}</span>
+      </div>
       <button
         ref="swapBtnRef"
         class="d-btn d-btn-outline d-btn-square d-btn-sm d-swap h-5"
@@ -211,7 +215,10 @@ const menuTitleStyle = computed(() => {
         />
       </svg>
 
-      <span>{{ menu.meta.title }}</span>
+      <div class="flex items-center gap-2">
+        <iconify-icon :icon="menu?.meta?.icon" class="h-5 w-5" />
+        <span>{{ menu.meta.title }}</span>
+      </div>
     </div>
   </li>
 </template>
