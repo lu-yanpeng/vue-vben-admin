@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { RouteMenuItem } from '#/types/menu';
-import { requestClient } from '#/api/request';
-import { refreshTokenApi } from '#/api/core/auth'
 
 import { ref, useTemplateRef } from 'vue';
 
+import { refreshTokenApi } from '#/api/core/auth';
+import { requestClient } from '#/api/request';
 import Menu from '#/components/menu/index.vue';
 
 const menuData: RouteMenuItem[] = [
@@ -57,26 +57,21 @@ const onSelect = (_route: RouteMenuItem) => {
 
 const onSort = () => {
   dragSort.value = !dragSort.value;
-  if (!dragSort.value) {
-    if (menuRef.value) {
-      const menuData = menuRef.value.menuData();
-      menuData.forEach((menu, index) => {
-        menu.meta.order = index * 10
-      })
-      console.log('排序后', menuData)
-    }
+  if (!dragSort.value && menuRef.value) {
+    const menuData = menuRef.value.menuData();
+    menuData.forEach((menu, index) => {
+      menu.meta.order = index * 10;
+    });
   }
-}
+};
 
 const onTest = async () => {
-  const response = await requestClient.get('/permission/policy')
-  console.log('请求结果', response)
-}
+  await requestClient.get('/permission/policy');
+};
 
 const refresh = async () => {
-  const response = await refreshTokenApi()
-  console.log('刷新token', response.data)
-}
+  await refreshTokenApi();
+};
 </script>
 
 <template>

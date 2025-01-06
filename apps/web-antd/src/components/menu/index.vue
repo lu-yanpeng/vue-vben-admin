@@ -42,7 +42,7 @@ const { cloned: clonedMenus, sync } = useCloned<RouteMenuItem[]>(
 watch(
   () => props.menus,
   () => sync(),
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 const ulRef = useTemplateRef('ulRef');
 // 控制拖拽过渡效果

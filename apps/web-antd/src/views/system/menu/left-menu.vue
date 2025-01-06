@@ -1,53 +1,31 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, onMounted } from 'vue';
-import MenuComp from '#/components/menu/index.vue';
-import { getLocalRoute } from '#/router/local-routes';
-import { getMenu, setMenu } from '#/api/system/menu';
 import type { RouteMenuItem } from '#/types/menu';
+
+import { computed, ref, useTemplateRef, watchEffect } from 'vue';
+
 import { isEqual } from '@vben/utils';
+
+import MenuComp from '#/components/menu/index.vue';
+
+const props = withDefaults(
+  defineProps<{
+    menuData: RouteMenuItem[];
+  }>(),
+  {
+    menuData: () => [],
+  },
+);
+const emits = defineEmits<{
+  select: [menu: RouteMenuItem];
+  sort: [
+    RouteMenuItem[],
+    (value: boolean | null | PromiseLike<boolean | null>) => void,
+  ];
+}>();
 
 const loading = ref(false);
 const menus = ref<RouteMenuItem[]>([]);
-// 合并本地和服务器的菜单数据，只合并meta，以服务器的meta数据为准
-const __merge = (
-  local: RouteMenuItem[],
-  server: RouteMenuItem[],
-): RouteMenuItem[] => {
-  return local.map((localItem) => {
-    const serverItem = server.find(
-      (serverItem) => serverItem.name === localItem.name,
-    );
-    if (serverItem) {
-      return {
-        ...localItem,
-        meta: { ...localItem.meta, ...serverItem.meta },
-        children:
-          localItem.children && serverItem.children
-            ? __merge(localItem.children, serverItem.children)
-            : (localItem?.children ?? serverItem?.children),
-      };
-    } else {
-      return localItem;
-    }
-  });
-};
-// 从服务器获取菜单数据，和本地菜单进行合并
-const mergeMenu = async () => {
-  menus.value = [];
-  const serverMenu = (await getMenu()) as RouteMenuItem[];
-  const localMenu = getLocalRoute();
-  menus.value = __merge(localMenu, serverMenu);
-  // 合并后进行排序
-  menus.value.sort((a, b) => {
-    const a1 = a?.meta?.order ?? 0;
-    const b1 = b?.meta?.order ?? 0;
-    return a1 - b1;
-  });
-};
-
-onMounted(async () => {
-  await mergeMenu();
-});
+watchEffect(() => (menus.value = props.menuData));
 
 const openSubmenu = ref(false);
 const menuCompRef = useTemplateRef('menuCompRef');
@@ -58,6 +36,12 @@ const unfold = () => {
   }
 };
 const text = computed(() => (openSubmenu.value ? '收起' : '展开'));
+
+const reset = () => {
+  if (menuCompRef.value) {
+    menuCompRef.value.restore();
+  }
+};
 
 const dragSort = ref(false);
 const sort = () => {
@@ -80,23 +64,23 @@ const saveSort = async () => {
       menuData.forEach((menu, index) => {
         menu.meta.order = (index + 1) * 10;
       });
-      await setMenu(menuData);
-      await mergeMenu();
+      await new Promise((resolve) => {
+        emits('sort', menuData, resolve);
+      });
     } finally {
       dragSort.value = false;
       loading.value = false;
     }
   }
 };
-const reset = () => {
-  if (menuCompRef.value) {
-    menuCompRef.value.restore();
-  }
-};
+
+defineExpose({
+  openMenu: (v: boolean) => (openSubmenu.value = v),
+});
 </script>
 
 <template>
-  <a-spin size="large" :spinning="loading" :delay="300">
+  <a-spin :delay="300" :spinning="loading" size="large">
     <template #indicator>
       <span class="d-loading d-loading-spinner d-loading-lg"></span>
     </template>
@@ -122,14 +106,20 @@ const reset = () => {
           </button>
           <button
             v-show="dragSort"
-            class="d-btn d-btn-sm d-btn-outline d-btn-info"
+            class="d-btn d-btn-sm d-btn-outline d-btn-warning"
             @click="reset"
           >
             重置
           </button>
         </div>
         <div class="d-divider mb-1 mt-1"></div>
-        <menu-comp class="" ref="menuCompRef" :menus :dragSort />
+        <MenuComp
+          ref="menuCompRef"
+          :drag-sort
+          :menus
+          class=""
+          @select="(menu) => $emit('select', menu)"
+        />
       </div>
     </div>
   </a-spin>

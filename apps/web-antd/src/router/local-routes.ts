@@ -1,4 +1,5 @@
 import type { RouteMenuItem } from '#/types/menu';
+
 import { cloneDeep } from '@vben/utils';
 
 const basic: RouteMenuItem[] = [

@@ -6,15 +6,15 @@ interface Me {
   create_time: string;
   update_time: string;
   username: string;
-  email: string | null;
+  email: null | string;
   id: string;
   is_active: boolean;
   profile: {
     create_time: string;
-    update_time: string;
     id: number;
-    user_id: string;
     real_name: string;
+    update_time: string;
+    user_id: string;
   };
   is_superuser: boolean;
   roles: string[];
@@ -29,6 +29,6 @@ export async function getUserInfoApi(): Promise<UserInfo> {
     realName: response.real_name,
     roles: response.roles,
     username: response.username,
-    userId: response.id
+    userId: response.id,
   } as UserInfo;
 }

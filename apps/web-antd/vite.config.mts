@@ -1,11 +1,21 @@
 import { defineConfig } from '@vben/vite-config';
-import Components from 'unplugin-vue-components/vite';
+
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
 
 export default defineConfig(async () => {
   return {
     application: {},
     vite: {
+      plugins: [
+        Components({
+          resolvers: [
+            AntDesignVueResolver({
+              importStyle: false,
+            }),
+          ],
+        }),
+      ],
       server: {
         proxy: {
           '/api': {
@@ -17,15 +27,6 @@ export default defineConfig(async () => {
           },
         },
       },
-      plugins: [
-        Components({
-          resolvers: [
-            AntDesignVueResolver({
-              importStyle: false,
-            }),
-          ],
-        }),
-      ],
     },
   };
 });

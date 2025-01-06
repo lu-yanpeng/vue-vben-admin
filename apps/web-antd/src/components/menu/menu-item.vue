@@ -2,6 +2,7 @@
 import type { RouteMenuItem } from '#/types/menu';
 
 import { computed, onMounted, useTemplateRef } from 'vue';
+
 import { IconifyIcon } from '@vben/icons';
 
 defineOptions({ name: 'MenuItem' });
@@ -146,7 +147,7 @@ const menuTitleStyle = computed(() => {
         />
       </svg>
       <div class="flex items-center gap-2">
-        <iconify-icon :icon="menu?.meta?.icon" class="h-5 w-5" />
+        <IconifyIcon :icon="menu?.meta?.icon" class="h-5 w-5" />
         <span>{{ menu.meta.title }}</span>
       </div>
       <button
@@ -216,7 +217,7 @@ const menuTitleStyle = computed(() => {
       </svg>
 
       <div class="flex items-center gap-2">
-        <iconify-icon :icon="menu?.meta?.icon" class="h-5 w-5" />
+        <IconifyIcon :icon="menu?.meta?.icon" class="h-5 w-5" />
         <span>{{ menu.meta.title }}</span>
       </div>
     </div>
