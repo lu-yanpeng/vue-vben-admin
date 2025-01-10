@@ -1,12 +1,16 @@
 <script lang="ts" setup>
-import type { VbenFormProps } from '@vben-core/form-ui';
 import type {
   VxeGridDefines,
   VxeGridInstance,
   VxeGridListeners,
   VxeGridPropTypes,
   VxeGridProps as VxeTableGridProps,
+  VxeToolbarPropTypes,
 } from 'vxe-table';
+
+import type { SetupContext } from 'vue';
+
+import type { VbenFormProps } from '@vben-core/form-ui';
 
 import type { ExtendedVxeGridApi, VxeGridProps } from './types';
 
@@ -26,6 +30,7 @@ import { EmptyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { usePreferences } from '@vben/preferences';
 import { cloneDeep, cn, mergeWithArrayOverride } from '@vben/utils';
+
 import { VbenHelpTooltip, VbenLoading } from '@vben-core/shadcn-ui';
 
 import { VxeGrid, VxeUI } from 'vxe-table';
@@ -65,17 +70,18 @@ const {
 
 const { isMobile } = usePreferences();
 
-const slots = useSlots();
+const slots: SetupContext['slots'] = useSlots();
 
 const [Form, formApi] = useTableForm({
+  compact: true,
   handleSubmit: async () => {
-    const formValues = formApi.form.values;
+    const formValues = await formApi.getValues();
     formApi.setLatestSubmissionValues(toRaw(formValues));
     props.api.reload(formValues);
   },
   handleReset: async () => {
     await formApi.resetForm();
-    const formValues = formApi.form.values;
+    const formValues = await formApi.getValues();
     formApi.setLatestSubmissionValues(formValues);
     props.api.reload(formValues);
   },
@@ -86,7 +92,7 @@ const [Form, formApi] = useTableForm({
   },
   showCollapseButton: true,
   submitButtonOptions: {
-    content: $t('common.query'),
+    content: computed(() => $t('common.search')),
   },
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
@@ -106,28 +112,28 @@ const showToolbar = computed(() => {
 const toolbarOptions = computed(() => {
   const slotActions = slots[TOOLBAR_ACTIONS]?.();
   const slotTools = slots[TOOLBAR_TOOLS]?.();
-
-  const toolbarConfig: VxeGridPropTypes.ToolbarConfig = {
-    tools:
-      gridOptions.value?.toolbarConfig?.search && !!formOptions.value
-        ? [
-            {
-              code: 'search',
-              icon: 'vxe-icon--search',
-              circle: true,
-              status: showSearchForm.value ? 'primary' : undefined,
-              title: $t('common.search'),
-            },
-          ]
-        : [],
+  const searchBtn: VxeToolbarPropTypes.ToolConfig = {
+    code: 'search',
+    icon: 'vxe-icon--search',
+    circle: true,
+    status: showSearchForm.value ? 'primary' : undefined,
+    title: $t('common.search'),
   };
+  // 将搜索按钮合并到用户配置的toolbarConfig.tools中
+  const toolbarConfig: VxeGridPropTypes.ToolbarConfig = {
+    tools: (gridOptions.value?.toolbarConfig?.tools ??
+      []) as VxeToolbarPropTypes.ToolConfig[],
+  };
+  if (gridOptions.value?.toolbarConfig?.search && !!formOptions.value) {
+    toolbarConfig.tools = Array.isArray(toolbarConfig.tools)
+      ? [...toolbarConfig.tools, searchBtn]
+      : [searchBtn];
+  }
 
   if (!showToolbar.value) {
     return { toolbarConfig };
   }
 
-  // if (gridOptions.value?.toolbarConfig?.search) {
-  // }
   // 强制使用固定的toolbar配置，不允许用户自定义
   // 减少配置的复杂度，以及后续维护的成本
   toolbarConfig.slots = {
@@ -136,7 +142,6 @@ const toolbarOptions = computed(() => {
       : {}),
     ...(slotTools ? { tools: TOOLBAR_TOOLS } : {}),
   };
-
   return { toolbarConfig };
 });
 
@@ -146,7 +151,7 @@ const options = computed(() => {
   const mergedOptions: VxeTableGridProps = cloneDeep(
     mergeWithArrayOverride(
       {},
-      toolbarOptions.value,
+      toRaw(toolbarOptions.value),
       toRaw(gridOptions.value),
       globalGridConfig,
     ),
@@ -243,7 +248,10 @@ async function init() {
   const autoLoad = defaultGridOptions.proxyConfig?.autoLoad;
   const enableProxyConfig = options.value.proxyConfig?.enabled;
   if (enableProxyConfig && autoLoad) {
-    props.api.grid.commitProxy?.('_init', formApi.form?.values ?? {});
+    props.api.grid.commitProxy?.(
+      '_init',
+      formOptions.value ? ((await formApi.getValues()) ?? {}) : {},
+    );
     // props.api.reload(formApi.form?.values ?? {});
   }
 
@@ -284,6 +292,10 @@ watch(
   },
 );
 
+const isCompactForm = computed(() => {
+  return formApi.getState()?.compact;
+});
+
 onMounted(() => {
   props.api?.mount?.(gridRef.value, formApi);
   init();
@@ -301,7 +313,7 @@ onUnmounted(() => {
       ref="gridRef"
       :class="
         cn(
-          'p-2 pt-0',
+          'p-2',
           {
             'pt-0': showToolbar && !formOptions,
           },
@@ -338,7 +350,7 @@ onUnmounted(() => {
         <div
           v-if="formOptions"
           v-show="showSearchForm !== false"
-          class="relative rounded py-3 pb-4"
+          :class="cn('relative rounded py-3', isCompactForm ? 'pb-6' : 'pb-4')"
         >
           <slot name="form">
             <Form>
