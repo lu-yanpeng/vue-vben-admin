@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { DraggableEvent } from 'vue-draggable-plus';
+
 import type { RouteMenuItem } from '#/types/menu';
 
 import { ref, useTemplateRef, watch } from 'vue';
-import { type DraggableEvent, useDraggable } from 'vue-draggable-plus';
+import { useDraggable } from 'vue-draggable-plus';
 
 import { cloneDeep } from '@vben/utils';
 

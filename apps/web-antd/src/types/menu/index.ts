@@ -1,8 +1,12 @@
-import type { RouteMeta } from '@vben/types';
 import type { RouteRecordRaw } from 'vue-router';
 
-export type RouteMenuItem = {
+import type { RouteMeta } from '@vben/types';
+
+export type RouteMenuItem = Omit<
+  RouteRecordRaw,
+  'children' | 'component' | 'meta'
+> & {
   children?: RouteMenuItem[];
-  component: string;
+  component?: string;
   meta: RouteMeta;
-} & Omit<RouteRecordRaw, 'children' | 'component' | 'meta'>;
+};
