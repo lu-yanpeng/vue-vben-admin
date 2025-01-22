@@ -77,6 +77,26 @@ const defaultRoute: RouteMenuItem[] = [
           icon: 'fluent-color:org-24',
         },
       },
+      {
+        name: 'systemAccess',
+        path: 'access',
+        meta: {
+          title: '权限',
+          icon: 'fluent-color:org-24',
+        },
+        redirect: { name: 'systemAccessRole' },
+        children: [
+          {
+            name: 'systemAccessRole',
+            path: 'role',
+            component: '/system/access/role/index',
+            meta: {
+              title: '角色',
+              icon: 'fluent-color:org-24',
+            },
+          },
+        ],
+      },
     ],
   },
 ];
