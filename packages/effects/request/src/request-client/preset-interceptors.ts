@@ -64,6 +64,13 @@ export const authenticateResponseInterceptor = ({
       if (response?.status !== 401) {
         throw error;
       }
+
+      // 如果刷新token的时候refresh_token过期，就直接抛出异常
+      // refresh_token的接口文档有说明这种情况
+      if (response.headers['x-token-expired'] === 'refresh_token') {
+        throw error;
+      }
+
       // 判断是否启用了 refreshToken 功能
       // 如果没有启用或者已经是重试请求了，直接跳转到重新登录
       if (!enableRefreshToken || config.__isRetryRequest) {
@@ -115,6 +122,14 @@ export const errorMessageResponseInterceptor = (
   return {
     rejected: (error: any) => {
       if (axios.isCancel(error)) {
+        return Promise.reject(error);
+      }
+
+      // 如果传入的异常对象是后端返回的response，就直接显示response.message
+      // 比如刷新token时，token过期就会出现这种情况
+      if (typeof error === 'object' && 'message' in error) {
+        const msg = error.message;
+        makeErrorMessage?.(msg, error);
         return Promise.reject(error);
       }
 

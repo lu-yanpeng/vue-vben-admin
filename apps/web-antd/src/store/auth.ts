@@ -77,7 +77,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(redirect: boolean = true) {
     try {
-      await logoutApi();
+      // 如果没有accessToken就不要调用logout接口，以免接口报错
+      // logout接口需要accessToken来清除登录信息，没有token的话直接跳转到登录界面就行了
+      const accessStore = useAccessStore();
+      if (accessStore.accessToken) {
+        await logoutApi();
+      }
     } catch {
       // 不做任何处理
     }
