@@ -38,3 +38,20 @@ export const addPolicy = async () => {
     },
   ]);
 };
+
+export interface UpdateRoleData {
+  role?: {
+    desc: string;
+    is_default_role: boolean;
+  };
+  policies?: {
+    act: string;
+    path: string;
+  }[];
+}
+export const updateRole = async (
+  uid: number,
+  data: UpdateRoleData,
+): Promise<Omit<SingleRole, 'sys_routes'>> => {
+  return requestClient.put(`/role/${uid}`, data);
+};

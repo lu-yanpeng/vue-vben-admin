@@ -142,11 +142,15 @@ const gridOptions: VxeGridProps<Role> = {
   },
 };
 
-const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const getTest = async () => {
   await getRoleList();
 };
+
+defineExpose({
+  refresh: gridApi.query,
+});
 </script>
 
 <template>
