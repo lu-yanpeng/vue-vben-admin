@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { TreeProps } from 'ant-design-vue';
 
-import type { ModalData } from './types';
+import type { AddData, ModalData, UpdateData } from './types';
 
-import type { SingleRole, UpdateRoleData } from '#/api/system/access/role';
+import type {
+  AddRoleData,
+  SingleRole,
+  UpdateRoleData,
+} from '#/api/system/access/role';
 
 import { computed, ref, watchEffect } from 'vue';
 
@@ -214,32 +218,65 @@ const [Modal, modalApi] = useVbenModal({
   closeOnClickModal: false,
   onOpenChange: (isOpen: boolean) => {
     if (isOpen) {
-      const { role, policies, sys_routes } = modalApi.getData<ModalData>();
+      const _modalData = modalApi.getData<ModalData>();
 
-      // 表单数据
-      roleId.value = role.id;
-      createTime.value = dayjs(role.create_time).format('YYYY-MM-DD');
-      updateTime.value = dayjs(role.update_time).format('YYYY-MM-DD');
-      formApi.setValues(role);
-      originRoleData.value = {
-        name: role.name,
-        // 后端返回的这个字段值可能是null，直接给formApi赋值的话，desc会被赋值成undefined
-        // 这样做比较的时候就会有问题，需要转成相同的值
-        desc: role.desc ?? undefined,
-        is_default_role: role.is_default_role,
-      };
+      // 要赋值给表单的数据
+      let data: AddData['add']['data'] | null | UpdateData['update']['data'] =
+        null;
+      if (_modalData.type === 'add') {
+        data = _modalData.add.data;
+        modalApi.setState({
+          title: '添加角色',
+        });
+      } else if (_modalData.type === 'update') {
+        data = _modalData.update.data;
+        modalApi.setState({
+          title: '修改角色',
+        });
+      }
 
-      // 权限数据
-      checkedKeys.value = encodePolicies(policies);
-      originPolicies.value = new Set(checkedKeys.value);
+      if (data) {
+        const { role, policies, sys_routes } = data;
+        // @ts-ignore: 如果这些字段是undefined，直接赋值 -
+        const { id, create_time, update_time } = role;
+        // 表单数据
+        roleId.value = id ?? '-';
+        createTime.value = create_time
+          ? dayjs(create_time).format('YYYY-MM-DD')
+          : '-';
+        updateTime.value = update_time
+          ? dayjs(update_time).format('YYYY-MM-DD')
+          : '-';
+        // name字段是否禁用
+        formApi.updateSchema([
+          {
+            fieldName: 'name',
+            disabled: _modalData.type === 'update',
+          },
+        ]);
+        formApi.setValues(role);
+        // 保存原始角色数据，用来判断数据是否被修改
+        originRoleData.value = {
+          name: role.name,
+          // 后端返回的这个字段值可能是null，直接给formApi赋值的话，desc会被赋值成undefined
+          // 这样做比较的时候就会有问题，需要转成相同的值
+          desc: role.desc ?? undefined,
+          is_default_role: role.is_default_role,
+        };
 
-      // 权限目录
-      if (sys_routes) {
-        treeData.value = routeTree(sys_routes);
+        // 权限数据
+        checkedKeys.value = encodePolicies(policies);
+        originPolicies.value = new Set(checkedKeys.value);
+
+        if (sys_routes) {
+          // 权限目录
+          treeData.value = routeTree(sys_routes);
+        }
       }
     }
   },
   onConfirm: async () => {
+    // 如果数据被修改了需要提交，否则直接关闭弹窗
     if (allDirty.value) {
       const formData = (await formApi.validateAndSubmitForm()) as
         | RoleFormField
@@ -250,11 +287,22 @@ const [Modal, modalApi] = useVbenModal({
       }
       const checkedPolicies = [...getCheckedSet(checkedKeys.value as string[])];
 
-      // 更新角色
-      const { updateMethod, refreshGrid } = modalApi.getData<ModalData>();
-      if (updateMethod) {
-        try {
-          modalApi.lock(true);
+      const _modalData = modalApi.getData<ModalData>();
+
+      try {
+        modalApi.lock(true);
+        let refreshGrid: (() => Promise<void>) | null = null;
+        // 新增和修改的方法需要的数据不同，需要分开处理
+        if (_modalData.type === 'add') {
+          const { addMethod } = _modalData.add;
+          const data: AddRoleData = {
+            role: formData,
+            policies: decodePolicies(checkedPolicies),
+          };
+          refreshGrid = _modalData.add.refreshGrid;
+          await addMethod(data);
+        } else if (_modalData.type === 'update') {
+          const { updateMethod } = _modalData.update;
           const data: Record<string, any> = {};
           // 没有修改过的数据不要传递，如果权限传递空数组，会清空所有权限
           if (roleIsDirty.value) {
@@ -263,15 +311,17 @@ const [Modal, modalApi] = useVbenModal({
           if (policyIsDirty.value) {
             data.policies = decodePolicies(checkedPolicies);
           }
+          refreshGrid = _modalData.update.refreshGrid;
           await updateMethod(Number(roleId.value), data as UpdateRoleData);
-          // 修改当前表单状态，以免关闭弹窗的时候弹出确认按钮
-          policyIsDirty.value = false;
-          roleIsDirty.value = false;
-          await modalApi.close();
-          await refreshGrid();
-        } catch {
-          modalApi.lock(false);
         }
+
+        // 修改当前表单状态，以免关闭弹窗的时候弹出确认按钮
+        policyIsDirty.value = false;
+        roleIsDirty.value = false;
+        await modalApi.close();
+        await refreshGrid?.();
+      } catch {
+        modalApi.lock(false);
       }
     } else {
       await modalApi.close();

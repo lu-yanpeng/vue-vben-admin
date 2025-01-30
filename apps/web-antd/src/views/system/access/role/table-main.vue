@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import type { Role } from './types';
 
 import type { VbenFormProps } from '#/adapter/form';
@@ -10,7 +10,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getRoleList } from '#/api/system/access/role';
 
 const emits = defineEmits<{
-  openModal: [id: number];
+  openModal: [id?: number];
 }>();
 
 const formOptions: VbenFormProps = {
@@ -137,16 +137,32 @@ const gridOptions: VxeGridProps<Role> = {
     },
   },
   toolbarConfig: {
-    // 是否显示搜索表单控制按钮
-    // search: true,
+    slots: {
+      buttons: () => {
+        return (
+          <>
+            <div class="flex gap-2">
+              <button
+                class="d-btn d-btn-sm d-btn-outline d-btn-info"
+                onClick={() => emits('openModal')}
+              >
+                新增
+              </button>
+              <button class="d-btn d-btn-sm d-btn-outline d-btn-info">
+                修改
+              </button>
+              <button class="d-btn d-btn-sm d-btn-outline d-btn-warning">
+                删除
+              </button>
+            </div>
+          </>
+        );
+      },
+    },
   },
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
-
-const getTest = async () => {
-  await getRoleList();
-};
 
 defineExpose({
   refresh: gridApi.query,
@@ -154,11 +170,5 @@ defineExpose({
 </script>
 
 <template>
-  <div>
-    <div>
-      <button class="d-btn" @click="getTest">获取</button>
-    </div>
-
-    <Grid />
-  </div>
+  <Grid />
 </template>

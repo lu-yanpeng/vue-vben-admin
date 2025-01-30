@@ -5,7 +5,12 @@ import { useTemplateRef } from 'vue';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 
-import { getRole, updateRole } from '#/api/system/access/role';
+import {
+  addRole,
+  getRole,
+  getSysRoutes,
+  updateRole,
+} from '#/api/system/access/role';
 
 import ModalForm from './modal-form.vue';
 import TableMain from './table-main.vue';
@@ -16,26 +21,47 @@ const [Modal, modalApi] = useVbenModal({
 
 const tableMainRef =
   useTemplateRef<InstanceType<typeof TableMain>>('tableMainRef');
-const openModal = async (id: number) => {
+const openModal = async (id?: number) => {
   if (tableMainRef.value) {
-    const data = await getRole(id);
-    modalApi.setData<ModalData>({
-      updateMethod: updateRole,
-      refreshGrid: tableMainRef.value.refresh,
-      ...data,
-    });
+    const refreshGrid = tableMainRef.value.refresh;
+
+    if (id === undefined) {
+      const sys_routes = await getSysRoutes();
+      modalApi.setData<ModalData>({
+        type: 'add',
+        add: {
+          addMethod: addRole,
+          refreshGrid,
+          data: {
+            role: {
+              name: '',
+              desc: '',
+              is_default_role: false,
+            },
+            policies: [],
+            sys_routes,
+          },
+        },
+      });
+    } else {
+      const data = await getRole(id);
+      modalApi.setData<ModalData>({
+        type: 'update',
+        update: {
+          updateMethod: updateRole,
+          refreshGrid,
+          data,
+        },
+      });
+    }
     modalApi.open();
   }
 };
 </script>
 
 <template>
-  <Page title="角色管理">
-    <div class="d-card bg-base-100 shadow-xl">
-      <div class="d-card-body">
-        <TableMain ref="tableMainRef" @open-modal="openModal" />
-      </div>
-    </div>
+  <Page title="角色管理" auto-content-height>
+    <TableMain ref="tableMainRef" @open-modal="openModal" />
 
     <Modal />
   </Page>

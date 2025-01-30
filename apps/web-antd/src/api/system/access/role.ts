@@ -29,14 +29,21 @@ export const getRole = async (id: number): Promise<NonNullable<SingleRole>> => {
   });
 };
 
-export const addPolicy = async () => {
-  return requestClient.post('/permission/policy', [
-    {
-      role: 'admin',
-      path: '/permission/role',
-      act: 'GET',
-    },
-  ]);
+export interface AddRoleData {
+  role: {
+    desc?: string;
+    is_default_role?: boolean;
+    name: string;
+  };
+  policies?: {
+    act: string;
+    path: string;
+  }[];
+}
+export const addRole = async (
+  data: AddRoleData,
+): Promise<Pick<SingleRole, 'role'>> => {
+  return requestClient.post('/role', data);
 };
 
 export interface UpdateRoleData {
@@ -54,4 +61,10 @@ export const updateRole = async (
   data: UpdateRoleData,
 ): Promise<Omit<SingleRole, 'sys_routes'>> => {
   return requestClient.put(`/role/${uid}`, data);
+};
+
+export const getSysRoutes = async (): Promise<
+  NonNullable<SingleRole['sys_routes']>
+> => {
+  return requestClient.get('/role/routes');
 };
