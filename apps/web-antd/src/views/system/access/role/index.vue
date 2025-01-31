@@ -1,19 +1,36 @@
 <script lang="ts" setup>
 import type { ModalData } from './types';
 
-import { useTemplateRef } from 'vue';
+import { provide, useTemplateRef } from 'vue';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 
+import { message } from 'ant-design-vue';
+
 import {
   addRole,
+  delRole as delRoleApi,
   getRole,
   getSysRoutes,
   updateRole,
 } from '#/api/system/access/role';
 
 import ModalForm from './modal-form.vue';
+import { messageSymbolKeys } from './symbol-kyes';
 import TableMain from './table-main.vue';
+
+const [msgApi, ContextHolder] = message.useMessage();
+const showMessage = (
+  type: 'error' | 'info' | 'success' | 'warning',
+  text: string,
+) => {
+  try {
+    msgApi[type](text);
+  } catch {
+    msgApi.info(text);
+  }
+};
+provide(messageSymbolKeys, showMessage);
 
 const [Modal, modalApi] = useVbenModal({
   connectedComponent: ModalForm,
@@ -57,12 +74,34 @@ const openModal = async (id?: number) => {
     modalApi.open();
   }
 };
+
+const delRole = async (idList: number[]) => {
+  if (tableMainRef.value) {
+    const gridApi = tableMainRef.value.gridApi;
+    try {
+      gridApi.setLoading(true);
+      const result = await delRoleApi(idList);
+
+      if (result.length > 0) {
+        msgApi.success('删除成功');
+        await tableMainRef.value.refresh();
+      } else {
+        msgApi.error('删除失败');
+      }
+    } finally {
+      gridApi.setLoading(false);
+    }
+  }
+  console.error('异常');
+};
 </script>
 
 <template>
   <Page title="角色管理" auto-content-height>
-    <TableMain ref="tableMainRef" @open-modal="openModal" />
+    <TableMain ref="tableMainRef" @open-modal="openModal" @del-role="delRole" />
 
     <Modal />
+
+    <ContextHolder />
   </Page>
 </template>

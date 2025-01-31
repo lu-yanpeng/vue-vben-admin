@@ -1,3 +1,5 @@
+import { stringify } from 'qs';
+
 import { requestClient } from '#/api/request';
 
 export const getRoleList = async () => {
@@ -67,4 +69,13 @@ export const getSysRoutes = async (): Promise<
   NonNullable<SingleRole['sys_routes']>
 > => {
   return requestClient.get('/role/routes');
+};
+
+export const delRole = async (idList: number[]): Promise<number[]> => {
+  return requestClient.delete('/role', {
+    params: {
+      uid_list: idList,
+    },
+    paramsSerializer: (params) => stringify(params, { arrayFormat: 'repeat' }),
+  });
 };

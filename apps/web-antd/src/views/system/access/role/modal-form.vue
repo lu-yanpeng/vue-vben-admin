@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TreeProps } from 'ant-design-vue';
 
+import type { MessageSymbolType } from './symbol-kyes';
 import type { AddData, ModalData, UpdateData } from './types';
 
 import type {
@@ -9,17 +10,19 @@ import type {
   UpdateRoleData,
 } from '#/api/system/access/role';
 
-import { computed, ref, watchEffect } from 'vue';
+import { computed, inject, ref, watchEffect } from 'vue';
 
 import { useVbenModal, z } from '@vben/common-ui';
 import { isEqual } from '@vben/utils';
 
-import { Modal as AntdModal, message } from 'ant-design-vue';
+import { Modal as AntdModal } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
 import { useVbenForm } from '#/adapter/form';
 
-const [msgApi, ContextHolder] = message.useMessage();
+import { messageSymbolKeys } from './symbol-kyes';
+
+const msgApi = inject<MessageSymbolType>(messageSymbolKeys);
 
 // 角色表单中所有用到的字段，用不到的不要写在里面，比如表单不需要createTime
 type RoleFormField = {
@@ -282,7 +285,9 @@ const [Modal, modalApi] = useVbenModal({
         | RoleFormField
         | undefined;
       if (!formData) {
-        msgApi.error('表单验证失败');
+        if (msgApi) {
+          msgApi('error', '表单验证失败');
+        }
         return;
       }
       const checkedPolicies = [...getCheckedSet(checkedKeys.value as string[])];
@@ -319,6 +324,11 @@ const [Modal, modalApi] = useVbenModal({
         policyIsDirty.value = false;
         roleIsDirty.value = false;
         await modalApi.close();
+        if (msgApi) {
+          const { type } = modalApi.getData<ModalData>();
+          const text = type === 'add' ? '添加成功' : '修改成功';
+          msgApi('success', text);
+        }
         await refreshGrid?.();
       } catch {
         modalApi.lock(false);
@@ -406,7 +416,5 @@ const treeCheck = (keys: string[]) => {
         />
       </div>
     </div>
-
-    <ContextHolder />
   </Modal>
 </template>
