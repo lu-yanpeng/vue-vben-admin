@@ -323,12 +323,12 @@ const [Modal, modalApi] = useVbenModal({
         // 修改当前表单状态，以免关闭弹窗的时候弹出确认按钮
         policyIsDirty.value = false;
         roleIsDirty.value = false;
-        await modalApi.close();
         if (msgApi) {
           const { type } = modalApi.getData<ModalData>();
           const text = type === 'add' ? '添加成功' : '修改成功';
           msgApi('success', text);
         }
+        await modalApi.close();
         await refreshGrid?.();
       } catch {
         modalApi.lock(false);
