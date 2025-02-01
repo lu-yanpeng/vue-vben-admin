@@ -88,6 +88,7 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<Role> = {
+  autoResize: true,
   checkboxConfig: {
     highlight: true,
     trigger: 'cell',
@@ -129,8 +130,12 @@ const gridOptions: VxeGridProps<Role> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async () => {
-        return await getRoleList();
+      query: async ({ page }) => {
+        const { currentPage, pageSize } = page;
+        return await getRoleList({
+          skip: currentPage * pageSize - pageSize,
+          limit: pageSize,
+        });
       },
     },
     response: {
@@ -147,6 +152,9 @@ const gridOptions: VxeGridProps<Role> = {
     },
   },
   toolbarConfig: {
+    custom: true,
+    refresh: true,
+    zoom: true,
     slots: {
       buttons: () => {
         const delRole = async () => {

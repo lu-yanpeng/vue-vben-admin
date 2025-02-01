@@ -2,8 +2,31 @@ import { stringify } from 'qs';
 
 import { requestClient } from '#/api/request';
 
-export const getRoleList = async () => {
-  return requestClient.post('/role/filter');
+interface RoleListData {
+  skip?: number;
+  limit?: number;
+  fields?: string[];
+  order_by?: [string, 'asc' | 'desc'][];
+  query?: {
+    create_time?: [string, string | unknown[]];
+    // 是否使用or查询
+    db_or_query_?: [string, boolean];
+    desc?: [string, string | unknown[]];
+    id?: [string, number | string | unknown[]];
+    is_default_role?: [string, boolean | unknown[]];
+    name?: [string, string | unknown[]];
+    update_time?: [string, boolean | unknown[]];
+  }[];
+  policies?: boolean;
+}
+interface RoleList {
+  data: Omit<SingleRole, 'sys_routes'>[];
+  meta: {
+    total: 0;
+  };
+}
+export const getRoleList = async (data?: RoleListData): Promise<RoleList> => {
+  return requestClient.post('/role/filter', data);
 };
 
 export interface SingleRole {
