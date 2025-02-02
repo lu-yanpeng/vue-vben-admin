@@ -2,7 +2,7 @@ import { stringify } from 'qs';
 
 import { requestClient } from '#/api/request';
 
-interface RoleListData {
+export interface RoleListData {
   skip?: number;
   limit?: number;
   fields?: string[];
@@ -13,9 +13,9 @@ interface RoleListData {
     db_or_query_?: [string, boolean];
     desc?: [string, string | unknown[]];
     id?: [string, number | string | unknown[]];
-    is_default_role?: [string, boolean | unknown[]];
+    is_default_role?: [string, boolean];
     name?: [string, string | unknown[]];
-    update_time?: [string, boolean | unknown[]];
+    update_time?: [string, string | unknown[]];
   }[];
   policies?: boolean;
 }
