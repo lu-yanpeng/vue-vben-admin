@@ -7,14 +7,14 @@ import { Page, useVbenModal } from '@vben/common-ui';
 
 import { message } from 'ant-design-vue';
 
+import { getServerRoutes } from '#/api/system/menu';
 import {
   addRole,
   delRole as delRoleApi,
   getRole,
   getSysRoutes,
   updateRole,
-} from '#/api/system/access/role';
-import { getServerRoutes } from '#/api/system/menu';
+} from '#/api/system/role';
 
 import ModalForm from './modal-form/index.vue';
 import { messageSymbolKeys } from './symbol-kyes';
@@ -36,10 +36,7 @@ provide(messageSymbolKeys, showMessage);
 const [Modal, modalApi] = useVbenModal({
   connectedComponent: ModalForm,
 });
-// TODO: 1. 后端代码提交
-// 2. 所有接口接入casbin
-// 3. 测试user接口
-// 4. 前端接入user
+
 const tableMainRef =
   useTemplateRef<InstanceType<typeof TableMain>>('tableMainRef');
 const openModal = async (id?: number) => {
@@ -102,7 +99,6 @@ const delRole = async (idList: number[]) => {
       gridApi.setLoading(false);
     }
   }
-  console.error('异常');
 };
 </script>
 

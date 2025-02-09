@@ -4,7 +4,7 @@ import type {
   SingleRole,
   SysRouteItem,
   UpdateRoleFn,
-} from '#/api/system/access/role.ts';
+} from '#/api/system/role.ts';
 import type { RouteMenuItem } from '#/types/menu';
 
 export interface Role {

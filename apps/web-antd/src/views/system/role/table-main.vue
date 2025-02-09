@@ -3,7 +3,7 @@ import type { MessageSymbolType } from './symbol-kyes';
 import type { Role } from './types';
 
 import type { VbenFormProps } from '#/adapter/form';
-import type { RoleListData } from '#/api/system/access/role';
+import type { RoleListData } from '#/api/system/role';
 
 import { inject, ref } from 'vue';
 
@@ -13,7 +13,7 @@ import { Modal as AntdModal, Tooltip } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getRoleList } from '#/api/system/access/role';
+import { getRoleList } from '#/api/system/role';
 
 import { messageSymbolKeys } from './symbol-kyes';
 

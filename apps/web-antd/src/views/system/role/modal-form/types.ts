@@ -1,6 +1,6 @@
 import type { TreeProps } from 'ant-design-vue';
 
-import type { SingleRole, SysRouteItem } from '#/api/system/access/role';
+import type { SingleRole, SysRouteItem } from '#/api/system/role';
 
 export type ApiRoutes = SysRouteItem[];
 export type { SingleRole };

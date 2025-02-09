@@ -8,7 +8,7 @@ import type {
   SingleRole,
 } from './types';
 
-import type { AddRoleData, UpdateRoleData } from '#/api/system/access/role';
+import type { AddRoleData, UpdateRoleData } from '#/api/system/role';
 import type { RouteMenuItem } from '#/types/menu';
 
 import { computed, inject, ref, useTemplateRef, watchEffect } from 'vue';
