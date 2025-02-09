@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { TreeProps } from 'ant-design-vue';
-
-import type { ApiRoutes, SingleRole } from './types';
+import type { ApiRoutes, SingleRole, TreeData } from './types';
 
 import { ref, watch } from 'vue';
 
@@ -11,16 +9,15 @@ const props = defineProps<{
   checkedKeys: SingleRole['policies'];
 }>();
 
-type _TreeData = NonNullable<TreeProps['treeData']>;
 // 整个权限树
-const treeData = ref<_TreeData>([]);
+const treeData = ref<TreeData>([]);
 // 已勾选的权限，格式 /path->method
 const checkedPolicies = ref<string[]>([]);
 // 原始权限，判断权限是否修改过，格式 /path->method
 const originPolicies = ref<Set<string>>(new Set());
 
 // 根据后端api routes生成对应的树形结构
-const routeTree = (routes: ApiRoutes): _TreeData => {
+const routeTree = (routes: ApiRoutes): TreeData => {
   /*
    * 把后端数据转成符合a-tree组件的树形结构
    * */
@@ -93,7 +90,7 @@ const routeTree = (routes: ApiRoutes): _TreeData => {
       createNode(route, __route);
     }
   }
-  return [...__result.values()] as _TreeData;
+  return [...__result.values()] as TreeData;
 };
 
 // 把服务器的权限数据转成 /path->methods格式
@@ -180,7 +177,7 @@ defineExpose({
 
 <template>
   <div>
-    <h2 class="mb-2 text-lg font-semibold">权限1</h2>
+    <h2 class="mb-2 text-lg font-semibold">权限</h2>
     <a-tree
       checkable
       :tree-data="treeData"

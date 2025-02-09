@@ -1,4 +1,4 @@
-import type { RouteRecordStringComponent } from '@vben/types';
+import type { RouteMenuItem } from '#/types/menu';
 
 import { requestClient } from '#/api/request';
 import { getLocalRoute } from '#/router/local-routes';
@@ -6,8 +6,8 @@ import { getLocalRoute } from '#/router/local-routes';
 /**
  * 获取用户所有菜单
  */
-export async function getAllMenusApi() {
-  const data = await requestClient.get<RouteRecordStringComponent[]>('/menu/');
+export async function getAllMenusApi(): Promise<RouteMenuItem[]> {
+  const data = await requestClient.get<RouteMenuItem[]>('/menu/');
   if (data === null) {
     return getLocalRoute();
   }

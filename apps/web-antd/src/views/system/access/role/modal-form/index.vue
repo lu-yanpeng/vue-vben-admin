@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { MessageSymbolType } from '../symbol-kyes';
 import type { AddData, ModalData, UpdateData } from '../types';
-import type { ApiRoutes, RoleFormField, SingleRole } from './types';
+import type {
+  ApiRoutes,
+  RoleFormField,
+  RoleStaticValue,
+  SingleRole,
+} from './types';
 
 import type { AddRoleData, UpdateRoleData } from '#/api/system/access/role';
+import type { RouteMenuItem } from '#/types/menu';
 
-import {
-  computed,
-  inject,
-  nextTick,
-  ref,
-  useTemplateRef,
-  watchEffect,
-} from 'vue';
+import { computed, inject, ref, useTemplateRef, watchEffect } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
@@ -21,6 +20,7 @@ import { Modal as AntdModal } from 'ant-design-vue';
 import { messageSymbolKeys } from '../symbol-kyes';
 import RolePolicy from './policy.vue';
 import RoleInfo from './role-info.vue';
+import RoleRoutes from './routes.vue';
 
 const msgApi = inject<MessageSymbolType>(messageSymbolKeys);
 
@@ -35,24 +35,39 @@ const roleIsDirty = ref(false);
 const changeRoleDirty = (status: boolean) => {
   roleIsDirty.value = status;
 };
+const routesIsDirty = ref(false);
+const changeRoutesDirty = (status: boolean) => {
+  routesIsDirty.value = status;
+};
 // 权限或角色是否被修改
-const allDirty = computed(() => roleIsDirty.value || policyIsDirty.value);
+const allDirty = computed(
+  () => roleIsDirty.value || policyIsDirty.value || routesIsDirty.value,
+);
 
 const roleInfoRef = useTemplateRef('roleInfoRef');
+const roleInfoData = ref<null | RoleStaticValue>(null);
+
 // 后端所有api接口的地址
 const apiRoutes = ref<ApiRoutes>([]);
 // 已勾选的权限
 const policiesCheckedKeys = ref<SingleRole['policies']>([]);
 const rolePolicyRef = useTemplateRef('rolePolicyRef');
 
+const serverRoutes = ref<RouteMenuItem[]>([]);
+const roleRoutesData = ref<null | RouteMenuItem[]>(null);
+const roleRoutesRef = useTemplateRef('roleRoutesRef');
+
+const modalType = ref<AddData['type'] | UpdateData['type']>('add');
+
 const [Modal, modalApi] = useVbenModal({
   draggable: true,
   centered: true,
-  class: 'md:w-2/5',
+  class: 'md:w-3/5',
   closeOnClickModal: false,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const _modalData = modalApi.getData<ModalData>();
+      modalType.value = _modalData.type;
 
       // 要赋值给表单的数据
       let data: AddData['add']['data'] | null | UpdateData['update']['data'] =
@@ -72,19 +87,20 @@ const [Modal, modalApi] = useVbenModal({
       if (data) {
         const { role, policies, sys_routes } = data;
 
-        await nextTick();
-        // 设置表单数据，调用自己的方法，在这个方法中要保存初始数据
-        if (roleInfoRef.value) {
-          roleInfoRef.value._setValues(role, _modalData.type);
-        }
+        // 表单数据
+        roleInfoData.value = role as RoleStaticValue;
 
         // 权限数据
         policiesCheckedKeys.value = policies;
-
         if (sys_routes) {
           // 权限目录
           apiRoutes.value = sys_routes;
         }
+
+        // 角色可访问的路由
+        roleRoutesData.value = role.routes;
+        // 前端路由目录
+        serverRoutes.value = data.serverRoutes;
       }
     }
   },
@@ -109,6 +125,11 @@ const [Modal, modalApi] = useVbenModal({
         _policies.push(...rolePolicyRef.value.getPolicies());
       }
 
+      let _roleRoutes: null | RouteMenuItem[] = null;
+      if (roleRoutesRef.value) {
+        _roleRoutes = roleRoutesRef.value.getRoutes();
+      }
+
       const _modalData = modalApi.getData<ModalData>();
 
       try {
@@ -120,6 +141,7 @@ const [Modal, modalApi] = useVbenModal({
           const data: AddRoleData = {
             role: formData,
             policies: _policies,
+            routes: _roleRoutes,
           };
           refreshGrid = _modalData.add.refreshGrid;
           await addMethod(data);
@@ -129,6 +151,16 @@ const [Modal, modalApi] = useVbenModal({
           // 没有修改过的数据不要传递，如果权限传递空数组，会清空所有权限
           if (roleIsDirty.value) {
             data.role = formData;
+          }
+          if (routesIsDirty.value) {
+            const routes = _roleRoutes ? JSON.stringify(_roleRoutes) : null;
+            if ('role' in data) {
+              data.role.routes = routes;
+            } else {
+              data.role = {
+                routes,
+              };
+            }
           }
           if (policyIsDirty.value) {
             data.policies = _policies;
@@ -143,6 +175,7 @@ const [Modal, modalApi] = useVbenModal({
         // 修改当前表单状态，以免关闭弹窗的时候弹出确认按钮
         policyIsDirty.value = false;
         roleIsDirty.value = false;
+        routesIsDirty.value = false;
         if (msgApi) {
           const { type } = modalApi.getData<ModalData>();
           const text = type === 'add' ? '添加成功' : '修改成功';
@@ -184,8 +217,15 @@ watchEffect(() => {
 
 <template>
   <Modal>
-    <div class="grid grid-cols-1 md:[grid-template-columns:45fr_10fr_45fr]">
-      <RoleInfo ref="roleInfoRef" :change-role-dirty="changeRoleDirty" />
+    <div
+      class="grid grid-cols-1 md:[grid-template-columns:30fr_5fr_30fr_5fr_30fr]"
+    >
+      <RoleInfo
+        ref="roleInfoRef"
+        :change-role-dirty="changeRoleDirty"
+        :role-data="roleInfoData"
+        :type="modalType"
+      />
 
       <div class="d-divider md:d-divider-horizontal"></div>
 
@@ -194,6 +234,15 @@ watchEffect(() => {
         :checked-keys="policiesCheckedKeys"
         :change-dirty="changePolicyDirty"
         :api-routes="apiRoutes"
+      />
+
+      <div class="d-divider md:d-divider-horizontal"></div>
+
+      <RoleRoutes
+        ref="roleRoutesRef"
+        :change-dirty="changeRoutesDirty"
+        :role-routes="roleRoutesData"
+        :server-routes
       />
     </div>
   </Modal>

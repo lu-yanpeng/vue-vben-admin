@@ -7,7 +7,8 @@ import { Page } from '@vben/common-ui';
 
 import { message } from 'ant-design-vue';
 
-import { getMenu, setMenu } from '#/api/system/menu';
+import { getServerRoutes, setMenu } from '#/api/system/menu';
+import { mergeRoutesMate } from '#/common-methods';
 import DaisyuiWrap from '#/components/daisyui-wrap.vue';
 import { getLocalRoute } from '#/router/local-routes';
 
@@ -17,33 +18,13 @@ import RightEditor from './right-editor.vue';
 const [msgApi, ContextHolder] = message.useMessage();
 
 const menuData = ref<RouteMenuItem[]>([]);
-// 合并本地和服务器的菜单数据，只合并meta，以服务器的meta数据为准
-const __mergeMenuMate = (
-  local: RouteMenuItem[],
-  server: RouteMenuItem[],
-): RouteMenuItem[] => {
-  return local.map((localItem) => {
-    const serverItem = server.find(
-      (serverItem) => serverItem.name === localItem.name,
-    );
-    return serverItem
-      ? {
-          ...localItem,
-          meta: { ...localItem.meta, ...serverItem.meta },
-          children:
-            localItem.children && serverItem.children
-              ? __mergeMenuMate(localItem.children, serverItem.children)
-              : (localItem?.children ?? serverItem?.children),
-        }
-      : localItem;
-  });
-};
+
 // 从服务器获取菜单数据，和本地菜单进行合并
 const mergeMenu = async () => {
   menuData.value = [];
-  const serverMenu = (await getMenu()) as RouteMenuItem[];
+  const serverMenu = (await getServerRoutes()) as RouteMenuItem[];
   const localMenu = getLocalRoute();
-  menuData.value = __mergeMenuMate(localMenu, serverMenu);
+  menuData.value = mergeRoutesMate(localMenu, serverMenu);
   // 合并后进行排序
   menuData.value.sort((a, b) => {
     const a1 = a?.meta?.order ?? 0;

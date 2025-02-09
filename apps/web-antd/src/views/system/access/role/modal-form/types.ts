@@ -1,6 +1,8 @@
-import type { SingleRole } from '#/api/system/access/role';
+import type { TreeProps } from 'ant-design-vue';
 
-export type ApiRoutes = NonNullable<SingleRole['sys_routes']>;
+import type { SingleRole, SysRouteItem } from '#/api/system/access/role';
+
+export type ApiRoutes = SysRouteItem[];
 export type { SingleRole };
 export type RoleStaticValue = {
   create_time?: string;
@@ -16,3 +18,4 @@ export type RoleFormField = {
   is_default_role: boolean;
   name: string;
 };
+export type TreeData = NonNullable<TreeProps['treeData']>;

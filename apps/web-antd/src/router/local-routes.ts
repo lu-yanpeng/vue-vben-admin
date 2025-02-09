@@ -101,4 +101,4 @@ const defaultRoute: RouteMenuItem[] = [
   },
 ];
 
-export const getLocalRoute = () => cloneDeep(defaultRoute);
+export const getLocalRoute = (): RouteMenuItem[] => cloneDeep(defaultRoute);

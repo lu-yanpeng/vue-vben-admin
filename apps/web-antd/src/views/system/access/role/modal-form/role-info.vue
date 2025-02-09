@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RoleFormField, RoleStaticValue } from './types';
 
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import { z } from '@vben/common-ui';
 import { isEqual } from '@vben/utils';
@@ -12,6 +12,8 @@ import { useVbenForm } from '#/adapter/form';
 
 const props = defineProps<{
   changeRoleDirty: (status: boolean) => void;
+  roleData: null | RoleStaticValue;
+  type: 'add' | 'update';
 }>();
 
 type StaticValue = {
@@ -66,34 +68,43 @@ const [BaseForm, formApi] = useVbenForm({
   },
 });
 
+watch(
+  () => props.roleData,
+  (data) => {
+    if (data) {
+      const { id = '-', create_time = '-', update_time = '-' } = data;
+      roleId.value = id;
+      createTime.value =
+        create_time === '-'
+          ? create_time
+          : dayjs(data.create_time).format('YYYY-MM-DD');
+      updateTime.value =
+        update_time === '-'
+          ? '-'
+          : dayjs(data.update_time).format('YYYY-MM-DD');
+
+      // 保存原始角色数据，用来判断数据是否被修改
+      originRoleData.value = {
+        name: data.name,
+        // 后端返回的这个字段值可能是null，直接给formApi赋值的话，desc会被赋值成undefined
+        // 这样做比较的时候就会有问题，需要转成相同的值
+        desc: data?.desc ?? undefined,
+        is_default_role: data.is_default_role,
+      };
+      formApi.updateSchema([
+        {
+          fieldName: 'name',
+          disabled: props.type === 'update',
+        },
+      ]);
+      formApi.setValues(data);
+    }
+  },
+  { immediate: true },
+);
+
 defineExpose({
   formApi,
-  _setValues: (role: RoleStaticValue, type: 'add' | 'update') => {
-    const { id = '-', create_time = '-', update_time = '-' } = role;
-    roleId.value = id;
-    createTime.value =
-      create_time === '-'
-        ? create_time
-        : dayjs(role.create_time).format('YYYY-MM-DD');
-    updateTime.value =
-      update_time === '-' ? '-' : dayjs(role.update_time).format('YYYY-MM-DD');
-
-    // 保存原始角色数据，用来判断数据是否被修改
-    originRoleData.value = {
-      name: role.name,
-      // 后端返回的这个字段值可能是null，直接给formApi赋值的话，desc会被赋值成undefined
-      // 这样做比较的时候就会有问题，需要转成相同的值
-      desc: role?.desc ?? undefined,
-      is_default_role: role.is_default_role,
-    };
-    formApi.updateSchema([
-      {
-        fieldName: 'name',
-        disabled: type === 'update',
-      },
-    ]);
-    formApi.setValues(role);
-  },
   getStaticValue: () => {
     return {
       id: roleId.value,

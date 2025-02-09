@@ -1,8 +1,11 @@
 import type {
-  AddRoleData,
+  AddRoleFn,
+  RolePolicy,
   SingleRole,
-  UpdateRoleData,
+  SysRouteItem,
+  UpdateRoleFn,
 } from '#/api/system/access/role.ts';
+import type { RouteMenuItem } from '#/types/menu';
 
 export interface Role {
   id?: number;
@@ -16,11 +19,17 @@ export interface Role {
 export interface AddData {
   type: 'add';
   add: {
-    addMethod: (data: AddRoleData) => Promise<Pick<SingleRole, 'role'>>;
+    addMethod: AddRoleFn;
     data: {
-      policies: SingleRole['policies'];
-      role: Pick<Role, 'desc' | 'is_default_role' | 'name'>;
-      sys_routes: NonNullable<SingleRole['sys_routes']>;
+      policies: RolePolicy[];
+      role: {
+        desc: '';
+        is_default_role: boolean;
+        name: '';
+        routes: null;
+      };
+      serverRoutes: RouteMenuItem[];
+      sys_routes: SysRouteItem[];
     };
     refreshGrid: (params?: Record<string, any>) => Promise<void>;
   };
@@ -30,12 +39,11 @@ export interface UpdateData {
   type: 'update';
   add?: never;
   update: {
-    data: NonNullable<SingleRole>;
+    data: NonNullable<SingleRole> & {
+      serverRoutes: RouteMenuItem[];
+    };
     refreshGrid: (params?: Record<string, any>) => Promise<void>;
-    updateMethod: (
-      uid: number,
-      data: UpdateRoleData,
-    ) => Promise<Omit<SingleRole, 'sys_routes'>>;
+    updateMethod: UpdateRoleFn;
   };
 }
 export type ModalData = AddData | UpdateData;

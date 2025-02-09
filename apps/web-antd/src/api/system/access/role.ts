@@ -1,6 +1,29 @@
+import type { RouteMenuItem } from '#/types/menu';
+
 import { stringify } from 'qs';
 
 import { requestClient } from '#/api/request';
+
+export interface RoleRead {
+  create_time: string;
+  desc: string;
+  id: number;
+  is_default_role: boolean;
+  name: string;
+  update_time: string;
+  routes: null | RouteMenuItem[];
+}
+export type RolePolicy = [string, string, string];
+export interface SysRouteItem {
+  methods: string[];
+  name: string;
+  path: string;
+}
+export interface SingleRole {
+  role: RoleRead;
+  policies: RolePolicy[];
+  sys_routes?: SysRouteItem[];
+}
 
 export interface RoleListData {
   skip?: number;
@@ -29,23 +52,6 @@ export const getRoleList = async (data?: RoleListData): Promise<RoleList> => {
   return requestClient.post('/role/filter', data);
 };
 
-export interface SingleRole {
-  role: {
-    create_time: string;
-    desc: string;
-    id: number;
-    is_default_role: boolean;
-    name: string;
-    update_time: string;
-  };
-  policies: [string, string, string][];
-  sys_routes?: {
-    methods: string[];
-    name: string;
-    path: string;
-  }[];
-}
-
 export const getRole = async (id: number): Promise<NonNullable<SingleRole>> => {
   return requestClient.get(`/role/${id}`, {
     params: {
@@ -54,43 +60,48 @@ export const getRole = async (id: number): Promise<NonNullable<SingleRole>> => {
   });
 };
 
-export interface AddRoleData {
-  role: {
-    desc?: string;
-    is_default_role?: boolean;
-    name: string;
-  };
-  policies?: {
-    act: string;
-    path: string;
-  }[];
+export interface RoleCreate {
+  desc?: string;
+  is_default_role?: boolean;
+  name: string;
+  routes?: null | string;
 }
-export const addRole = async (
+export type RolePolicyCreate = {
+  act: string;
+  path: string;
+};
+export interface AddRoleData {
+  role: RoleCreate;
+  policies?: RolePolicyCreate[];
+}
+export type AddRoleFn = (data: AddRoleData) => Promise<RoleRead>;
+export const addRole: AddRoleFn = async (
   data: AddRoleData,
-): Promise<Pick<SingleRole, 'role'>> => {
+): Promise<RoleRead> => {
   return requestClient.post('/role', data);
 };
 
-export interface UpdateRoleData {
-  role?: {
-    desc: string;
-    is_default_role: boolean;
-  };
-  policies?: {
-    act: string;
-    path: string;
-  }[];
+export interface RoleUpdate {
+  desc: string;
+  is_default_role: boolean;
+  routes?: null | string;
 }
-export const updateRole = async (
+export interface UpdateRoleData {
+  role?: RoleUpdate;
+  policies?: RolePolicyCreate[];
+}
+export type UpdateRoleFn = (
+  uid: number,
+  data: UpdateRoleData,
+) => Promise<Omit<SingleRole, 'sys_routes'>>;
+export const updateRole: UpdateRoleFn = async (
   uid: number,
   data: UpdateRoleData,
 ): Promise<Omit<SingleRole, 'sys_routes'>> => {
   return requestClient.put(`/role/${uid}`, data);
 };
 
-export const getSysRoutes = async (): Promise<
-  NonNullable<SingleRole['sys_routes']>
-> => {
+export const getSysRoutes = async (): Promise<SysRouteItem[]> => {
   return requestClient.get('/role/routes');
 };
 

@@ -14,6 +14,7 @@ import {
   getSysRoutes,
   updateRole,
 } from '#/api/system/access/role';
+import { getServerRoutes } from '#/api/system/menu';
 
 import ModalForm from './modal-form/index.vue';
 import { messageSymbolKeys } from './symbol-kyes';
@@ -44,6 +45,7 @@ const tableMainRef =
 const openModal = async (id?: number) => {
   if (tableMainRef.value) {
     const refreshGrid = tableMainRef.value.refresh;
+    const serverRoutes = await getServerRoutes();
 
     if (id === undefined) {
       const sys_routes = await getSysRoutes();
@@ -57,9 +59,11 @@ const openModal = async (id?: number) => {
               name: '',
               desc: '',
               is_default_role: false,
+              routes: null,
             },
             policies: [],
             sys_routes,
+            serverRoutes,
           },
         },
       });
@@ -70,7 +74,10 @@ const openModal = async (id?: number) => {
         update: {
           updateMethod: updateRole,
           refreshGrid,
-          data,
+          data: {
+            ...data,
+            serverRoutes,
+          },
         },
       });
     }
