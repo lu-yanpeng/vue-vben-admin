@@ -125,12 +125,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
       {
         field: 'create_time',
         title: '创建日期',
-        formatter: ({ cellValue }) => dayjs(cellValue).format('YYYY-MM-DD'),
+        formatter: ({ cellValue }: { cellValue: string }) =>
+          dayjs(cellValue).format('YYYY-MM-DD'),
       },
       {
         field: 'update_time',
         title: '更新日期',
-        formatter: ({ cellValue }) => dayjs(cellValue).format('YYYY-MM-DD'),
+        formatter: ({ cellValue }: { cellValue: string }) =>
+          dayjs(cellValue).format('YYYY-MM-DD'),
       },
     ],
     keepSource: true,
@@ -138,7 +140,10 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         // 表格获取数据的时候都会调用这个方法
-        query: async ({ page }, formValues: Partial<FormFields>) => {
+        query: async (
+          { page }: { page: { currentPage: number; pageSize: number } },
+          formValues: Partial<FormFields>,
+        ) => {
           let query: RoleListData['query'];
           const queryData: NonNullable<RoleListData['query']>[number] = {};
           for (const itemKey in formValues) {
@@ -194,10 +199,16 @@ const [Grid, gridApi] = useVbenVxeGrid({
         },
       },
       response: {
-        total: ({ data }): number => {
+        total: ({ data }: { data: { meta: { total: number } } }): number => {
           return data.meta.total;
         },
-        result: ({ data }): Role[] => {
+        result: ({
+          data,
+        }: {
+          data: {
+            data: { role: Role }[];
+          };
+        }): Role[] => {
           const __result = [];
           for (const item of data.data) {
             __result.push(item.role);
