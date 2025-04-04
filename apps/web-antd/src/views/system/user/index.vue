@@ -462,9 +462,6 @@ const [MyTable] = useCommonTable({
         await delUser(idList as string[]);
       },
     },
-    /* options: {
-
-    },*/
   },
 });
 </script>
