@@ -9,10 +9,13 @@ declare module 'vue' {
   export interface GlobalComponents {
     ASpin: typeof import('ant-design-vue/es')['Spin']
     ATree: typeof import('ant-design-vue/es')['Tree']
+    CommonTable: typeof import('./src/components/common-table/index.vue')['default']
     DaisyuiWrap: typeof import('./src/components/daisyui-wrap.vue')['default']
     Menu: typeof import('./src/components/menu/index.vue')['default']
     MenuItem: typeof import('./src/components/menu/menu-item.vue')['default']
+    ModalForm: typeof import('./src/components/common-table/modal-form.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Table: typeof import('./src/components/common-table/table.vue')['default']
   }
 }

@@ -86,6 +86,15 @@ const defaultRoute: RouteMenuItem[] = [
           icon: 'fluent-color:org-24',
         },
       },
+      {
+        name: 'systemUser',
+        path: 'user',
+        component: '/system/user/index',
+        meta: {
+          title: '用户',
+          icon: 'fluent-color:org-24',
+        },
+      },
     ],
   },
 ];
