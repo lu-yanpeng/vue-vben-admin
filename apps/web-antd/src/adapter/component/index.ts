@@ -8,7 +8,13 @@ import type { Component } from 'vue';
 import type { BaseFormComponentType } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
-import { defineComponent, getCurrentInstance, h, ref } from 'vue';
+import {
+  defineAsyncComponent,
+  defineComponent,
+  getCurrentInstance,
+  h,
+  ref,
+} from 'vue';
 
 import { ApiComponent, globalShareState, IconPicker } from '@vben/common-ui';
 import { $t } from '@vben/locales';
@@ -78,6 +84,7 @@ export type ComponentType =
   | 'DatePicker'
   | 'DefaultButton'
   | 'Divider'
+  | 'ForeignKey'
   | 'IconPicker'
   | 'Input'
   | 'InputNumber'
@@ -96,6 +103,11 @@ export type ComponentType =
   | 'TreeSelect'
   | 'Upload'
   | BaseFormComponentType;
+
+// 外键字段
+const ForeignKey = defineAsyncComponent(
+  () => import('./foreign-key/index.vue'),
+);
 
 async function initComponentAdapter() {
   const components: Partial<Record<ComponentType, Component>> = {
@@ -175,6 +187,7 @@ async function initComponentAdapter() {
     TimePicker,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload,
+    ForeignKey,
   };
 
   // 将组件注册到全局共享状态中
