@@ -23,6 +23,7 @@ export interface AddUserData {
   user: {
     is_active: boolean;
     password: string;
+    role_id?: string;
     username: string;
   };
   profile?: {
@@ -92,6 +93,7 @@ interface User {
   username: string;
   id: string;
   is_active: boolean;
+  role_id: number;
   profile: {
     create_time: string;
     email: string;

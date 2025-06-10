@@ -1,9 +1,11 @@
 <script setup lang="tsx">
+import type { RoleList } from '#/api/system/role';
 import type { AddUserData, UpdateUser } from '#/api/system/user';
 
 import { Page, z } from '@vben/common-ui';
 import { isEqual } from '@vben/utils';
 
+import { getRole, getRoleList } from '#/api/system/role';
 import {
   addUser,
   delUser,
@@ -157,6 +159,35 @@ const [MyTable] = useCommonTable({
         return true;
       };
 
+      const checkRoleId = async (v?: null | string) => {
+        const { api } = formOption;
+        // 字段失去焦点，且当前字段值不为空时才校验数据
+        const blurState = api.getFocusedField();
+        if (blurState === undefined && blurState !== 'role_id') {
+          let desc = '-';
+          try {
+            if (v === '' || v === null || v === undefined) {
+              return true;
+            }
+            const response = await getRole(Number(v));
+            desc = response.role.desc;
+            return true;
+          } catch {
+            return false;
+          } finally {
+            api.updateSchema([
+              {
+                fieldName: 'role_id',
+                componentProps: {
+                  desc,
+                },
+              },
+            ]);
+          }
+        }
+        return true;
+      };
+
       switch (status) {
         case 'add': {
           return {
@@ -222,6 +253,44 @@ const [MyTable] = useCommonTable({
                   .string()
                   .email({ message: '请输入正确邮箱' })
                   .or(z.literal(''))
+                  .optional(),
+              },
+              {
+                fieldName: 'role_id',
+                component: 'ForeignKey',
+                label: '角色',
+                formItemClass: 'col-span-full',
+                componentProps: {
+                  getDescByID: async (id: string) => {
+                    const response = await getRole(Number(id));
+                    return response.role.desc;
+                  },
+                  descField: 'desc',
+                  table: {
+                    columns: [
+                      { field: 'id', title: 'ID' },
+                      { field: 'name', title: '角色' },
+                      { field: 'desc', title: '描述' },
+                    ],
+                    query: async ({ page }: tools.queryParams) => {
+                      const { currentPage, pageSize } = page;
+                      return await getRoleList({
+                        skip: currentPage * pageSize - pageSize,
+                        limit: pageSize,
+                        fields: ['id', 'name', 'desc'],
+                      });
+                    },
+                    responseResult: (data: { data: RoleList }) => {
+                      return data.data.data.map((item) => item.role);
+                    },
+                  },
+                },
+                rules: z
+                  .string()
+                  .trim()
+                  .refine(async (v: string) => await checkRoleId(v), {
+                    message: '角色不存在',
+                  })
                   .optional(),
               },
             ],
@@ -320,6 +389,44 @@ const [MyTable] = useCommonTable({
                   .or(z.literal(''))
                   .optional(),
               },
+              {
+                fieldName: 'role_id',
+                component: 'ForeignKey',
+                label: '角色',
+                formItemClass: 'col-span-full',
+                componentProps: {
+                  getDescByID: async (id: number) => {
+                    const response = await getRole(id);
+                    return response.role.desc;
+                  },
+                  descField: 'desc',
+                  table: {
+                    columns: [
+                      { field: 'id', title: 'ID' },
+                      { field: 'name', title: '角色' },
+                      { field: 'desc', title: '描述' },
+                    ],
+                    query: async ({ page }: tools.queryParams) => {
+                      const { currentPage, pageSize } = page;
+                      return await getRoleList({
+                        skip: currentPage * pageSize - pageSize,
+                        limit: pageSize,
+                        fields: ['id', 'name', 'desc'],
+                      });
+                    },
+                    responseResult: (data: { data: RoleList }) => {
+                      return data.data.data.map((item) => item.role);
+                    },
+                  },
+                },
+                rules: z
+                  .string()
+                  .trim()
+                  .refine(async (v: string) => await checkRoleId(v), {
+                    message: '角色不存在',
+                  })
+                  .optional(),
+              },
             ],
             wrapperClass: 'grid-cols-12',
           };
@@ -327,17 +434,18 @@ const [MyTable] = useCommonTable({
       }
     },
     getValues: async (status, uid) => {
+      const values = {
+        username: '',
+        password: '',
+        is_active: true,
+        real_name: '',
+        email: '',
+        role_id: undefined,
+      };
+
       switch (status) {
         case 'add': {
-          return {
-            values: {
-              username: '',
-              password: '',
-              is_active: true,
-              real_name: '',
-              email: '',
-            },
-          };
+          return { values };
         }
         case 'update': {
           if (uid) {
@@ -352,23 +460,17 @@ const [MyTable] = useCommonTable({
                 username: user.username,
                 password: '',
                 is_active: user.is_active,
-                real_name: user.profile.real_name,
-                email: user.profile.email,
+                real_name: user.profile.real_name ?? undefined,
+                email: user.profile.email ?? undefined,
+                role_id:
+                  user.role_id === null ? undefined : String(user.role_id),
               },
             };
           }
           break;
         }
       }
-      return {
-        values: {
-          username: '',
-          password: '',
-          is_active: true,
-          real_name: '',
-          email: '',
-        },
-      };
+      return { values };
     },
     valuesChange: (oldV, newV, status) => {
       if (status === 'update') {
@@ -409,7 +511,8 @@ const [MyTable] = useCommonTable({
       update: async (uid, data, originData) => {
         const user: Record<string, any> = {};
         const profile: Record<string, any> = {};
-        // 遍历表单数据跟原始数据对比，只保留已经修改过的数据，如果值是空串就保存null
+        // FIXME: 表单每添加一个字段这里都要手动对比数据，需要优化
+        // 遍历表单数据跟原始数据对比，只保留已经修改过的数据
         for (const [k, v] of Object.entries(data)) {
           if (!k.startsWith('_')) {
             if (k === 'password') {
@@ -427,9 +530,17 @@ const [MyTable] = useCommonTable({
               user[k] = v;
             } else if (
               ['email', 'real_name'].includes(k) &&
+              v !== null &&
+              v !== undefined &&
               v !== originData[k]
             ) {
-              profile[k] = v === '' ? null : v;
+              profile[k] = v === '';
+            } else if (k === 'role_id') {
+              if (v === '') {
+                user[k] = null;
+              } else if (v !== originData[k]) {
+                user[k] = v;
+              }
             }
           }
         }
@@ -450,6 +561,7 @@ const [MyTable] = useCommonTable({
             username: data.username,
             password: data.password,
             is_active: data.is_active,
+            role_id: data.role_id === '' ? undefined : data.role_id,
           },
           profile: {
             real_name: data.real_name === '' ? null : data.real_name,

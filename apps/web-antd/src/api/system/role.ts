@@ -42,10 +42,10 @@ export interface RoleListData {
   }[];
   policies?: boolean;
 }
-interface RoleList {
+export interface RoleList {
   data: Omit<SingleRole, 'sys_routes'>[];
   meta: {
-    total: 0;
+    total: number;
   };
 }
 export const getRoleList = async (data?: RoleListData): Promise<RoleList> => {
