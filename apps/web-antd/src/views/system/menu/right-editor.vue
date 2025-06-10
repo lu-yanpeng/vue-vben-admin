@@ -6,7 +6,7 @@ import { ref, watch, watchEffect } from 'vue';
 import { useIsMobile } from '@vben/hooks';
 import { IconifyIcon } from '@vben/icons';
 
-import { iconExists } from '@iconify/vue';
+import { iconLoaded } from '@iconify/vue';
 import { message } from 'ant-design-vue';
 
 import { useVbenForm, z } from '#/adapter/form';
@@ -73,7 +73,7 @@ const [BaseForm, formApi] = useVbenForm({
           suffix: () => {
             const setIcon = async () => {
               const { icon: _icon } = await formApi.getValues();
-              const result = iconExists(_icon);
+              const result = iconLoaded(_icon);
               icon.value = _icon;
               if (result) {
                 msgApi?.success('图标可用');
