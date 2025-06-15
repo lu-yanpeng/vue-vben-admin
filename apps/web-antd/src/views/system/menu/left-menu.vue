@@ -9,7 +9,7 @@ import MenuComp from '#/components/menu/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    menuData: RouteMenuItem[];
+    menuData?: RouteMenuItem[];
   }>(),
   {
     menuData: () => [],

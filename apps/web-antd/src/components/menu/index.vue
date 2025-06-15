@@ -19,7 +19,7 @@ const props = withDefaults(
     // 打开拖拽排序
     dragSort?: boolean;
     // 菜单的数据
-    menus: RouteMenuItem[];
+    menus?: RouteMenuItem[];
     // 初始化的时候是否打开所有子菜单，只在初始化的时候有用，之后修改这个值不起效果
     open?: boolean;
   }>(),

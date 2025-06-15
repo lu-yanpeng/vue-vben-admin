@@ -534,7 +534,7 @@ const [MyTable] = useCommonTable({
               v !== undefined &&
               v !== originData[k]
             ) {
-              profile[k] = v === '';
+              profile[k] = v;
             } else if (k === 'role_id') {
               if (v === '') {
                 user[k] = null;

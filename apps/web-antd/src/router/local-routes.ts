@@ -2,6 +2,8 @@ import type { RouteMenuItem } from '#/types/menu';
 
 import { cloneDeep } from '@vben/utils';
 
+// 注意！设置主路由的path时不能设置/，这个路径已经被注册成root的路径
+// 参考：https://github.com/vbenjs/vue-vben-admin/issues/5496
 const basic: RouteMenuItem[] = [
   {
     component: 'BasicLayout',
@@ -11,7 +13,7 @@ const basic: RouteMenuItem[] = [
       title: '概览',
     },
     name: 'Dashboard',
-    path: '/',
+    path: '/dashboard',
     children: [
       {
         name: 'Analytics',

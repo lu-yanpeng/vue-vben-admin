@@ -141,8 +141,10 @@ const [Modal, modalApi] = useVbenModal({
           const data: AddRoleData = {
             role: formData,
             policies: _policies,
-            routes: _roleRoutes,
           };
+          if (routesIsDirty.value) {
+            data.role.routes = _roleRoutes ? JSON.stringify(_roleRoutes) : null;
+          }
           refreshGrid = _modalData.add.refreshGrid;
           await addMethod(data);
         } else if (_modalData.type === 'update') {

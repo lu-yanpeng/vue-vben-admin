@@ -8,7 +8,6 @@ export interface RoleRead {
   create_time: string;
   desc: string;
   id: number;
-  is_default_role: boolean;
   name: string;
   update_time: string;
   routes: null | RouteMenuItem[];
@@ -36,7 +35,6 @@ export interface RoleListData {
     db_or_query_?: [string, boolean];
     desc?: [string, string | unknown[]];
     id?: [string, number | string | unknown[]];
-    is_default_role?: [string, boolean];
     name?: [string, string | unknown[]];
     update_time?: [string, string | unknown[]];
   }[];
@@ -62,7 +60,6 @@ export const getRole = async (id: number): Promise<NonNullable<SingleRole>> => {
 
 export interface RoleCreate {
   desc?: string;
-  is_default_role?: boolean;
   name: string;
   routes?: null | string;
 }
@@ -83,7 +80,6 @@ export const addRole: AddRoleFn = async (
 
 export interface RoleUpdate {
   desc: string;
-  is_default_role: boolean;
   routes?: null | string;
 }
 export interface UpdateRoleData {

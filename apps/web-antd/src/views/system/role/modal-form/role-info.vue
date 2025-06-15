@@ -56,12 +56,6 @@ const [BaseForm, formApi] = useVbenForm({
       fieldName: 'desc',
       label: '描述',
     },
-    {
-      component: 'Checkbox',
-      fieldName: 'is_default_role',
-      label: '默认角色',
-      help: '创建用户时自动添加这个角色',
-    },
   ],
   handleValuesChange: (values) => {
     props.changeRoleDirty(!isEqual(originRoleData.value, values));
@@ -89,7 +83,6 @@ watch(
         // 后端返回的这个字段值可能是null，直接给formApi赋值的话，desc会被赋值成undefined
         // 这样做比较的时候就会有问题，需要转成相同的值
         desc: data?.desc ?? undefined,
-        is_default_role: data.is_default_role,
       };
       formApi.updateSchema([
         {
