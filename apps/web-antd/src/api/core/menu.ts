@@ -1,18 +1,36 @@
 import type { RouteMenuItem } from '#/types/menu';
 
-import { requestClient } from '#/api/request';
+import { useUserStore } from '@vben/stores';
+
+import { getRole } from '#/api/system/role';
 import { mergeRoutesMate } from '#/common-methods';
-import { getLocalRoute } from '#/router/local-routes';
+import { getBasicRoute, getLocalRoute } from '#/router/local-routes';
 
 /**
  * 获取用户所有菜单
  */
 export async function getAllMenusApi(): Promise<RouteMenuItem[]> {
-  const data = await requestClient.get<RouteMenuItem[]>('/menu/');
+  const userStore = useUserStore();
+  const userInfo = userStore?.userInfo;
+
   const localRoutes = getLocalRoute();
-  if (data === null) {
-    return localRoutes;
+  const basicRoute = getBasicRoute();
+
+  if (!userInfo) {
+    return getBasicRoute();
   }
 
-  return mergeRoutesMate(localRoutes, data);
+  // 返回角色对应路由
+  if (userInfo.roleId !== null) {
+    const { role } = await getRole(userInfo.roleId);
+    if (role.routes !== null) {
+      return mergeRoutesMate(localRoutes, role.routes);
+    }
+  }
+  // 超级用户返回所有路由
+  if (userInfo.isSuperuser) {
+    return localRoutes;
+  }
+  // 没有角色就返回基础路由
+  return basicRoute;
 }

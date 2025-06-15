@@ -1,4 +1,4 @@
-import type { UserInfo } from '@vben/types';
+import type { UserInfo as _UserInfo } from '@vben/types';
 
 import { requestClient } from '#/api/request';
 
@@ -19,6 +19,12 @@ interface Me {
   is_superuser: boolean;
   roles: string[];
   real_name: string;
+  role_id: number;
+}
+
+interface UserInfo extends _UserInfo {
+  roleId: null | number;
+  isSuperuser: boolean | null;
 }
 /**
  * 获取用户信息
@@ -30,5 +36,7 @@ export async function getUserInfoApi(): Promise<UserInfo> {
     roles: response.roles,
     username: response.username,
     userId: response.id,
+    roleId: response.role_id,
+    isSuperuser: response.is_superuser,
   } as UserInfo;
 }

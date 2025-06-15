@@ -34,11 +34,26 @@ const mergedRouteData = shallowRef<RouteMenuItem[]>([]);
 const treeData = ref<TreeData>([]);
 
 // 获取每个路由的name，组成一个数组，用来做checkedRoute的数据
+// 如果有子节点，当前的name会加上_parent_node，避免选中子节点的时候自动选上父节点
 const filterRoleRoutes = (routes: RouteMenuItem[]): string[] => {
-  return routes.flatMap((route) => [
-    ...(route.name ? [route.name] : []),
-    ...(route.children ? filterRoleRoutes(route.children) : []),
-  ]) as string[];
+  return routes.flatMap((route) => {
+    const hasChildren = route.children && route.children.length > 0;
+
+    // 如果当前节点是父节点，就在name后面加上_parent_node
+    let currentName = '';
+    if (route.name) {
+      currentName = hasChildren
+        ? `${route.name as string}_parent_node`
+        : (route.name as string);
+    }
+
+    return [
+      ...(currentName ? [currentName] : []),
+      ...(hasChildren
+        ? filterRoleRoutes(route.children as RouteMenuItem[])
+        : []),
+    ];
+  }) as string[];
 };
 // 已勾选的路由
 const checkedRoute = ref<string[]>([]);

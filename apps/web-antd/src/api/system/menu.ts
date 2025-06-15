@@ -2,12 +2,8 @@ import type { RouteMenuItem } from '#/types/menu';
 
 import { requestClient } from '#/api/request';
 import { getLocalRoute } from '#/router/local-routes';
-// import { getAllMenusApi } from '#/api/core/menu'
 
-// export const getMenu = getAllMenusApi
-// getMenu应该是获取系统的所有菜单，getAllMenusApi获取当前用户的菜单
-// export { getAllMenusApi as getMenu } from '#/api/core/menu';
-
+// 这里设置整个系统的路由，不是设置某个角色的路由
 export const setMenu = async (route: RouteMenuItem[]) => {
   return requestClient.post('/menu/', {
     route: JSON.stringify(route),

@@ -5,19 +5,20 @@ export const mergeRoutesMate = (
   local: RouteMenuItem[],
   server: RouteMenuItem[],
 ): RouteMenuItem[] => {
-  return local.map((localItem) => {
-    const serverItem = server.find(
-      (serverItem) => serverItem.name === localItem.name,
+  return server.map((serverItem) => {
+    const localItem = local.find(
+      (localItem) => localItem.name === serverItem.name,
     );
-    return serverItem
+
+    return localItem
       ? {
-          ...localItem,
-          meta: { ...localItem.meta, ...serverItem.meta },
+          ...serverItem,
+          meta: { ...serverItem.meta, ...localItem.meta },
           children:
-            localItem.children && serverItem.children
+            serverItem.children && localItem.children
               ? mergeRoutesMate(localItem.children, serverItem.children)
-              : (localItem?.children ?? serverItem?.children),
+              : (serverItem.children ?? localItem.children),
         }
-      : localItem;
+      : serverItem;
   });
 };
