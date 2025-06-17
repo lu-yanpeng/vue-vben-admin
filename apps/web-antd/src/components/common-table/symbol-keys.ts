@@ -6,3 +6,5 @@ export const msgApiKey = Symbol('msgApiKey');
 export const currentStateKey = Symbol('currentStateKey');
 
 export const formOptionKey = Symbol('formOptionKey');
+
+export const policiesKey = Symbol('policiesKey');

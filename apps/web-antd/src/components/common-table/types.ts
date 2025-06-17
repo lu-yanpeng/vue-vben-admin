@@ -89,7 +89,14 @@ export interface ModalData {
   };
 }
 
+// 当前组件会用到的权限，每个权限对应一个路径，比如 { GET: '/role' }，表示要判断当前用户是否有/role路径的GET权限
+export type PolicyMethod = 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT';
+export type Policies = {
+  [K in PolicyMethod]?: string;
+};
+
 export interface MainProps {
   gridProps: GridProps['options'];
   formProps: FormProps;
+  policies?: Policies;
 }

@@ -1,5 +1,13 @@
 <script setup lang="tsx">
-import type { GridApi, GridProps, MsgApi } from './types';
+import type { Ref } from 'vue';
+
+import type {
+  GridApi,
+  GridProps,
+  MsgApi,
+  Policies,
+  PolicyMethod,
+} from './types';
 
 import { inject, ref } from 'vue';
 
@@ -9,8 +17,9 @@ import { Modal as AntdModal, Tooltip } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import PolicyButton from '#/components/policy-button.vue';
 
-import { msgApiKey } from './symbol-keys';
+import { msgApiKey, policiesKey } from './symbol-keys';
 
 const props = defineProps<GridProps>();
 
@@ -24,6 +33,8 @@ const emits = defineEmits<{
 }>();
 
 const msgApi = inject(msgApiKey) as MsgApi;
+
+const policies = inject<Ref<Policies>>(policiesKey);
 
 let gridApi!: GridApi;
 const basicOptions: GridProps['options'] = {
@@ -148,27 +159,43 @@ if (
         },
       });
     };
+
+    const getPolicy = (
+      method: PolicyMethod,
+    ):
+      | undefined
+      | {
+          method: PolicyMethod;
+          path: string;
+        } => {
+      if (policies?.value && method in policies.value) {
+        return {
+          path: policies.value[method] as string,
+          method,
+        };
+      }
+    };
     return (
       <>
         <div class="flex gap-2">
-          <button
-            class="d-btn d-btn-sm d-btn-outline d-btn-info"
+          <PolicyButton
+            class="d-btn-sm d-btn-outline d-btn-info"
             onClick={onAdd}
-          >
-            新增
-          </button>
-          <button
-            class="d-btn d-btn-sm d-btn-outline d-btn-info"
+            policy={getPolicy('POST')}
+            text={'新增'}
+          />
+          <PolicyButton
+            class="d-btn-sm d-btn-outline d-btn-info"
             onClick={onUpdate}
-          >
-            修改
-          </button>
-          <button
-            class="d-btn d-btn-sm d-btn-outline d-btn-warning"
+            policy={getPolicy('PUT')}
+            text={'修改'}
+          />
+          <PolicyButton
+            class="d-btn-sm d-btn-outline d-btn-warning"
             onClick={onDel}
-          >
-            删除
-          </button>
+            policy={getPolicy('DELETE')}
+            text={'删除'}
+          />
         </div>
       </>
     );

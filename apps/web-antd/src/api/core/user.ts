@@ -18,13 +18,14 @@ interface Me {
   };
   is_superuser: boolean;
   roles: string[];
-  real_name: string;
   role_id: number;
+  policy: [string, string, string][];
 }
 
 interface UserInfo extends _UserInfo {
   roleId: null | number;
   isSuperuser: boolean | null;
+  policy: [string, string, string][];
 }
 /**
  * 获取用户信息
@@ -32,11 +33,12 @@ interface UserInfo extends _UserInfo {
 export async function getUserInfoApi(): Promise<UserInfo> {
   const response = await requestClient.get<Me>('/user/me');
   return {
-    realName: response.real_name,
+    realName: response.profile.real_name,
     roles: response.roles,
     username: response.username,
     userId: response.id,
     roleId: response.role_id,
     isSuperuser: response.is_superuser,
+    policy: response.policy,
   } as UserInfo;
 }

@@ -9,6 +9,7 @@ import type {
   FormStaticValues,
   ModalData,
   MsgApi,
+  Policies,
   SetFormValues,
   Status,
 } from './types';
@@ -30,11 +31,13 @@ import { Modal as AntdModal } from 'ant-design-vue/es/components';
 import dayjs from 'dayjs';
 
 import { useVbenForm } from '#/adapter/form';
+import { usePermission } from '#/common-methods';
 
 import {
   currentStateKey,
   formOptionKey,
   msgApiKey,
+  policiesKey,
   setFormValuesKey,
 } from './symbol-keys';
 
@@ -43,6 +46,16 @@ const msgApi = inject(msgApiKey) as MsgApi;
 const dirty = ref(false);
 const currentState = inject(currentStateKey) as CurrentState;
 const _formOption = inject(formOptionKey) as Ref<FormOption | null>;
+const policies = inject<Ref<Policies>>(policiesKey);
+
+const { permission } = usePermission(() => {
+  if (policies?.value) {
+    return {
+      path: policies.value.PUT as string,
+      method: 'PUT',
+    };
+  }
+});
 
 const formStaticValue = ref<FormStaticValues>({
   uid: '-',
@@ -99,6 +112,10 @@ const [BaseForm, formApi] = useVbenForm({
   schema: [],
   wrapperClass: 'grid-cols-1',
   handleValuesChange: (values) => {
+    if (!permission.value) {
+      return;
+    }
+
     let status = false;
     const { valuesChange } = modalApi.getData<ModalData>();
     if (typeof valuesChange === 'function') {
@@ -126,6 +143,9 @@ const [Modal, _modalApi] = useVbenModal({
       formApi.setState({
         schema,
         wrapperClass: wrapperClass ?? 'grid-cols-1',
+      });
+      _modalApi.setState({
+        confirmDisabled: !permission.value,
       });
     } else {
       setTimeout(() => {
@@ -178,6 +198,10 @@ const [Modal, _modalApi] = useVbenModal({
     }
   },
   onBeforeClose: async () => {
+    if (!permission.value) {
+      return true;
+    }
+
     // 如果数据被修改，关闭窗口的时候会提示
     let off = true;
     if (dirty.value) {
@@ -200,6 +224,10 @@ const [Modal, _modalApi] = useVbenModal({
 modalApi = _modalApi;
 
 watchEffect(() => {
+  if (!permission.value) {
+    return;
+  }
+
   const text = dirty.value ? '保存' : '确定';
   modalApi.setState({ confirmText: text });
 });

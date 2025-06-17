@@ -15,6 +15,7 @@ import {
 } from '#/api/system/user';
 import { tools, useCommonTable } from '#/components/common-table';
 
+const basicUrl = '/user';
 const [MyTable] = useCommonTable({
   gridProps: {
     formOptions: {
@@ -574,6 +575,12 @@ const [MyTable] = useCommonTable({
         await delUser(idList as string[]);
       },
     },
+  },
+  policies: {
+    GET: `${basicUrl}/{uid}`,
+    PUT: `${basicUrl}/{uid}`,
+    DELETE: basicUrl,
+    POST: basicUrl,
   },
 });
 </script>

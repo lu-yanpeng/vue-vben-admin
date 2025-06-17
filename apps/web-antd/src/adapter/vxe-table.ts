@@ -6,7 +6,7 @@ import { setupVbenVxeTable, useVbenVxeGrid } from '@vben/plugins/vxe-table';
 
 import { Button, Image } from 'ant-design-vue';
 
-import DaisyuiWrap from '#/components/daisyui-wrap.vue';
+import TableId from '#/components/table-id.vue';
 
 import { useVbenForm } from './form';
 
@@ -73,15 +73,13 @@ setupVbenVxeTable({
         const { row, column } = params;
         const { field } = column;
         const checked = Boolean(row[field]);
-        return h('div', null, [
-          h('div', { class: 'flex justify-center' }, [
-            h('input', {
-              type: 'checkbox',
-              checked,
-              disabled,
-              class: 'd-checkbox d-checkbox-sm d-checkbox-info',
-            }),
-          ]),
+        return h('div', { class: 'flex justify-center' }, [
+          h('input', {
+            type: 'checkbox',
+            checked,
+            disabled,
+            class: 'd-checkbox d-checkbox-sm d-checkbox-info',
+          }),
         ]);
       },
     });
@@ -108,24 +106,8 @@ setupVbenVxeTable({
             events?.click?.(shallowReadonly(row), e);
           }
         };
-        return h('div', null, [
-          h(
-            DaisyuiWrap,
-            { class: 'bg-transparent' },
-            {
-              default: () => [
-                h(
-                  'button',
-                  {
-                    class: 'd-btn d-btn-link d-btn-xs',
-                    onClick,
-                  },
-                  text,
-                ),
-              ],
-            },
-          ),
-        ]);
+
+        return h(TableId, { text, onClick });
       },
     });
   },

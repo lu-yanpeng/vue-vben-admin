@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CurrentState, FormOption, MainProps, ModalData } from './types';
 
-import { provide, ref, useTemplateRef } from 'vue';
+import { provide, ref, toRef, useTemplateRef } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
@@ -12,6 +12,7 @@ import {
   currentStateKey,
   formOptionKey,
   msgApiKey,
+  policiesKey,
   setFormValuesKey,
 } from './symbol-keys';
 import TableMain from './table.vue';
@@ -27,6 +28,11 @@ const currentState = ref(null) as CurrentState;
 provide(currentStateKey, currentState);
 const formOption = ref<FormOption | null>(null);
 provide(formOptionKey, formOption);
+// 需要的权限和它对应的路径
+provide(
+  policiesKey,
+  toRef(() => props.policies),
+);
 
 const [Modal, modalApi] = useVbenModal({
   connectedComponent: ModalForm,
